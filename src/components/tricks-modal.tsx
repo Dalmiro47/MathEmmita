@@ -11,7 +11,7 @@ import { type FC, useEffect, useState } from 'react';
 import { speak, stopSpeech, type Problem } from '@/lib/math-engine';
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Plus, Volume2, Square } from "lucide-react";
+import { Plus, Volume2, Square, RotateCcw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
@@ -35,7 +35,6 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
       <div className="flex justify-center items-end w-full gap-2 sm:gap-4">
         {fingers.map((finger) => {
           const isDown = finger === fingerDown;
-          const isLeftHand = finger <= 5;
 
           return (
             <div key={finger} className={cn(
@@ -104,64 +103,105 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
   );
 };
 
-
 const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
-    if (operand1 === 9 || operand2 === 9) {
-        const nonNine = operand1 === 9 ? operand2 : operand1;
-        if (nonNine < 1 || nonNine > 10) {
-            return <p>El truco de los dedos funciona para multiplicar por 9 números del 1 al 10.</p>
-        }
-        return (
-            <div className="space-y-4 text-center">
-                <h3 className="font-bold text-xl">¡Emmita, el truco del 9! ✨</h3>
-                <p>Para multiplicar <span className="font-bold">{nonNine} × 9</span>, ¡baja tu dedo número <span className="font-bold">{nonNine}</span>!</p>
-                <div className="my-4">
-                  <HandsIllustration fingerDown={nonNine} />
-                </div>
-            </div>
-        )
+  if (operand1 === 9 || operand2 === 9) {
+    const nonNine = operand1 === 9 ? operand2 : operand1;
+    if (nonNine < 1 || nonNine > 10) {
+      return <p>El truco de los dedos funciona para multiplicar por 9 números del 1 al 10.</p>
     }
-
-    const rows = Math.min(operand1, operand2);
-    const cols = Math.max(operand1, operand2);
-
     return (
-        <div className="space-y-4 text-center">
-             <h3 className="font-bold text-xl">Sumar en grupos ➕</h3>
-             <p className="text-muted-foreground">Multiplicar es contar en filas y columnas.</p>
-             
-             <div className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-orange-50">
-                
-                {/* Filas Label */}
-                <div className="flex flex-col items-center justify-center gap-1">
-                    <span className="font-bold text-3xl text-amber-700">{rows}</span>
-                    <span className="text-sm text-amber-600">filas</span>
-                </div>
-
-                <div className="flex flex-col items-center">
-                    {/* Columnas Label */}
-                    <div className="flex flex-col items-center mb-2">
-                        <span className="font-bold text-3xl text-sky-700">{cols}</span>
-                        <span className="text-sm text-sky-600">columnas</span>
-                    </div>
-
-                    {/* Grid de puntos */}
-                    <div 
-                      className="grid gap-2 p-4 bg-white rounded-lg border-2 border-dashed border-orange-200" 
-                      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-                    >
-                        {Array.from({ length: rows * cols }).map((_, i) => (
-                            <div
-                                key={i}
-                                className="w-5 h-5 bg-orange-400 rounded-full"
-                            />
-                        ))}
-                    </div>
-                </div>
-             </div>
-             <p className="text-lg pt-4">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos. ¡Cuéntalos todos para saber la respuesta!</p>
+      <div className="space-y-4 text-center">
+        <h3 className="font-bold text-xl">¡Emmita, el truco del 9! ✨</h3>
+        <p>Para multiplicar <span className="font-bold">{nonNine} × 9</span>, ¡baja tu dedo número <span className="font-bold">{nonNine}</span>!</p>
+        <div className="my-4">
+          <HandsIllustration fingerDown={nonNine} />
         </div>
+      </div>
     )
+  }
+
+  const rows = Math.min(operand1, operand2);
+  const cols = Math.max(operand1, operand2);
+  const totalPoints = rows * cols;
+  
+  const [filledCount, setFilledCount] = useState(0);
+  const isComplete = filledCount === totalPoints;
+
+  useEffect(() => {
+    // Reset when operands change
+    setFilledCount(0);
+  }, [operand1, operand2]);
+
+  const handleDotClick = () => {
+    if (filledCount < totalPoints) {
+      setFilledCount(c => c + 1);
+    }
+  }
+
+  return (
+    <div className="space-y-4 text-center">
+      <h3 className="font-bold text-xl">¡A dibujar para resolver! ✏️</h3>
+      
+      {!isComplete ? (
+        <p className="text-muted-foreground">
+          ¡Toca para dibujar los puntos! Necesitas <span className="font-bold text-primary">{rows} filas</span> de <span className="font-bold text-primary">{cols} puntos</span>.
+        </p>
+      ) : (
+        <div className="flex items-center justify-center gap-2 text-green-600 font-medium">
+          <CheckCircle2 className="h-5 w-5" />
+          <p>¡Excelente! Ahora cuéntalos todos.</p>
+        </div>
+      )}
+
+      <div className={cn(
+        "relative p-4 rounded-2xl bg-orange-50/50 border-2 border-dashed transition-colors duration-300",
+        isComplete ? "border-green-500 bg-green-50" : "border-orange-200"
+      )}>
+        <div 
+          className="grid gap-2 mx-auto" 
+          style={{ 
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+            width: `${cols * 2.5}rem`,
+          }}
+        >
+          {Array.from({ length: totalPoints }).map((_, i) => (
+            <button
+              key={i}
+              onClick={handleDotClick}
+              disabled={i < filledCount}
+              className={cn(
+                "w-8 h-8 rounded-full transition-all duration-150",
+                i < filledCount 
+                  ? "bg-orange-500 shadow-sm" 
+                  : "bg-slate-200 hover:bg-slate-300"
+              )}
+              aria-label={`Punto ${i+1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-left">
+          <p className="font-bold text-2xl">{filledCount} <span className="text-base text-muted-foreground">/ {totalPoints}</span></p>
+          <p className="text-sm text-muted-foreground">puntos dibujados</p>
+        </div>
+        <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setFilledCount(0)} disabled={filledCount === 0}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reiniciar
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setFilledCount(totalPoints)} disabled={isComplete}>
+                Dibujar todo
+            </Button>
+        </div>
+      </div>
+
+      {isComplete && (
+         <p className="text-lg pt-4">Hay <span className="font-bold">{totalPoints}</span> puntos. ¡Esa es la respuesta!</p>
+      )}
+    </div>
+  )
 }
 
 const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
