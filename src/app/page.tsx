@@ -66,7 +66,7 @@ export default function Home() {
       if (problem.isRetry) {
         // Special celebration for a hard-won victory
         setShowMedal(true);
-        say("¡Guau! ¡Has superado un reto difícil! ¡Eres una campeona!");
+        say("¡Guau! ¡Has superado un reto difícil! Eres una campeona, Emmita.");
         setTimeout(() => {
           setShowMedal(false);
           newProblem(true);
@@ -293,3 +293,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
