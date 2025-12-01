@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Math Explorers',
-  description: 'An accessible math game for kids',
+  title: 'Matemáticas con Emmita',
+  description: 'Un juego de matemáticas accesible para niños',
 };
 
 export default function RootLayout({

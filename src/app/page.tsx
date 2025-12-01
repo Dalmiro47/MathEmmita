@@ -102,7 +102,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="relative w-full max-w-md text-center">
-        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">Math Explorers</h1>
+        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">Matemáticas con Emmita</h1>
         
         {problem ? (
           <div className="p-8 bg-card rounded-2xl shadow-lg mb-8">
