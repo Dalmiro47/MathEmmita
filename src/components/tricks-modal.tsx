@@ -10,80 +10,79 @@ import {
 import { type FC, useEffect } from 'react';
 import { speak, type Problem } from '@/lib/math-engine';
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 
 const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
   const fingers = Array.from({ length: 10 }, (_, i) => i + 1);
   const tens = fingerDown - 1;
   const ones = 10 - fingerDown;
+  const nailColors = [
+    'bg-pink-300', 'bg-sky-300', 'bg-teal-300', 'bg-lime-300', 'bg-amber-300',
+    'bg-purple-300', 'bg-indigo-300', 'bg-cyan-300', 'bg-emerald-300', 'bg-rose-300'
+  ];
 
   return (
-    <div className="flex flex-col items-center p-4 rounded-lg bg-orange-50">
-      <div className="flex justify-center items-end gap-2 sm:gap-4">
-        {/* Render fingers 1-5 (Left Hand) */}
-        {fingers.slice(0, 5).map((finger) => (
-          <div key={finger} className="flex flex-col items-center gap-2">
-            <div
-              className={cn(
-                "w-8 rounded-t-lg border-2 border-orange-300 transition-all duration-300 ease-in-out",
-                finger === fingerDown
-                  ? "h-8 bg-muted/60"
-                  : "h-24 bg-orange-200"
-              )}
-            >
-              <div className={cn(
-                  "w-full h-5 bg-white/40 rounded-t-md",
-                   finger === fingerDown ? "opacity-50" : ""
-              )}></div>
-            </div>
-            <span className={cn(
-              "font-bold text-lg",
-              finger === fingerDown ? "text-muted-foreground" : "text-foreground"
-            )}>{finger}</span>
-          </div>
-        ))}
+    <div className="flex flex-col items-center p-2 sm:p-4 rounded-lg bg-orange-50 w-full overflow-hidden">
+      {/* Hands */}
+      <div className="flex justify-center items-end w-full gap-2 sm:gap-4">
+        {fingers.map((finger) => {
+          const isDown = finger === fingerDown;
+          const isLeftHand = finger <= 5;
 
-        {/* Gap between hands */}
-        <div className="w-8 sm:w-12"></div>
-
-        {/* Render fingers 6-10 (Right Hand) */}
-        {fingers.slice(5, 10).map((finger) => (
-          <div key={finger} className="flex flex-col items-center gap-2">
-            <div
-              className={cn(
-                "w-8 rounded-t-lg border-2 border-orange-300 transition-all duration-300 ease-in-out",
-                finger === fingerDown
-                  ? "h-8 bg-muted/60"
-                  : "h-24 bg-orange-200"
-              )}
-            >
-               <div className={cn(
-                  "w-full h-5 bg-white/40 rounded-t-md",
-                   finger === fingerDown ? "opacity-50" : ""
-              )}></div>
+          return (
+            <div key={finger} className={cn(
+              "flex flex-col items-center gap-2",
+              finger === 5 && "mr-8 sm:mr-12" // large gap between hands
+            )}>
+              <motion.div
+                animate={{ height: isDown ? "2rem" : "6rem" }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={cn(
+                  "w-8 sm:w-10 rounded-t-xl relative",
+                  isDown ? "bg-slate-300" : "bg-orange-100 border-2 border-orange-200"
+                )}
+              >
+                {!isDown && (
+                  <div className={cn(
+                    "absolute top-0 left-1/2 -translate-x-1/2 w-6 sm:w-8 h-4 rounded-t-md",
+                    nailColors[finger - 1]
+                  )}></div>
+                )}
+              </motion.div>
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                {finger}
+              </div>
             </div>
-            <span className={cn(
-              "font-bold text-lg",
-              finger === fingerDown ? "text-muted-foreground" : "text-foreground"
-            )}>{finger}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="flex justify-around w-full mt-6 text-center">
-        <div>
-          <p className="text-lg text-muted-foreground">Dedos a la izquierda</p>
-          <p className="text-5xl font-bold text-primary">{tens}</p>
-          <p className="text-sm font-bold">(Decenas)</p>
+      {/* Explanation Panels */}
+      <div className="flex justify-center items-center w-full mt-8 gap-2 sm:gap-4">
+        {/* Tens */}
+        <div className="flex-1 bg-amber-100 rounded-2xl p-4 text-center">
+          <p className="text-sm sm:text-lg text-amber-800">Dedos a la izquierda</p>
+          <p className="text-4xl sm:text-6xl font-bold text-amber-900">{tens}</p>
+          <p className="text-sm sm:text-base font-bold text-amber-900/70">(Decenas)</p>
         </div>
-        <div>
-          <p className="text-lg text-muted-foreground">Dedos a la derecha</p>
-          <p className="text-5xl font-bold text-primary">{ones}</p>
-          <p className="text-sm font-bold">(Unidades)</p>
+
+        <Plus className="w-8 h-8 text-slate-400 shrink-0" />
+
+        {/* Ones */}
+        <div className="flex-1 bg-sky-100 rounded-2xl p-4 text-center">
+          <p className="text-sm sm:text-lg text-sky-800">Dedos a la derecha</p>
+          <p className="text-4xl sm:text-6xl font-bold text-sky-900">{ones}</p>
+          <p className="text-sm sm:text-base font-bold text-sky-900/70">(Unidades)</p>
         </div>
       </div>
-       <div className="mt-6 text-center">
-         <p className="text-lg">¡La respuesta es...</p>
-         <p className="text-6xl font-extrabold text-green-600">{tens}{ones}</p>
+
+      {/* Final Answer */}
+       <div className="mt-6 w-full">
+         <div className="bg-green-500 text-white rounded-2xl py-3 px-6 text-center shadow-lg">
+           <p className="text-lg font-medium">¡La respuesta es...</p>
+           <p className="text-6xl font-extrabold tracking-tight">{tens}{ones}</p>
+         </div>
        </div>
     </div>
   );
@@ -172,7 +171,7 @@ export const TricksModal: FC<{
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-background/95 backdrop-blur-sm border-primary">
+      <DialogContent className="max-w-lg bg-background/95 backdrop-blur-sm border-primary">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">💡 ¡Emmita, aquí tienes un truco! 💡</DialogTitle>
           <DialogDescription className="text-center text-muted-foreground pt-2">
