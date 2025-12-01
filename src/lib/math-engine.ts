@@ -1,5 +1,3 @@
-import { textToSpeech } from '@/ai/flows/tts-flow';
-
 export type Problem = {
   operand1: number;
   operand2: number;
@@ -53,33 +51,54 @@ export function generateProblem(level: 1 | 2 = 1): Problem {
 
 // --- Text-to-Speech Engine ---
 
-let currentAudio: HTMLAudioElement | null = null;
+let voices: SpeechSynthesisVoice[] = [];
+let currentUtterance: SpeechSynthesisUtterance | null = null;
 
-// This function is a placeholder now, as we are not using browser voices.
 export function loadVoices() {
-  // No-op
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    return;
+  }
+  // The 'voiceschanged' event is fired when the list of voices is ready.
+  window.speechSynthesis.onvoiceschanged = () => {
+    voices = window.speechSynthesis.getVoices();
+  };
+  // In some browsers, we need to explicitly trigger the loading.
+  voices = window.speechSynthesis.getVoices();
 }
 
+
 export async function speak(text: string): Promise<void> {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
     return;
   }
 
-  // Stop any currently playing audio
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
+  // Cancel any ongoing speech
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
   }
 
-  try {
-    const response = await textToSpeech(text);
-    const audioData = response.audio;
+  return new Promise((resolve) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "es-ES";
+
+    // Try to find a good quality Spanish voice
+    const spanishVoice = voices.find(v => v.lang === 'es-ES' && v.name.includes('Google'));
+    utterance.voice = spanishVoice || voices.find(v => v.lang === 'es-ES') || null;
     
-    if (audioData) {
-      currentAudio = new Audio(audioData);
-      currentAudio.play().catch(e => console.error("Audio playback failed:", e));
-    }
-  } catch (error) {
-    console.error('Failed to generate speech:', error);
-  }
+    utterance.pitch = 1.1;
+    utterance.rate = 0.9;
+
+    utterance.onend = () => {
+      currentUtterance = null;
+      resolve();
+    };
+    
+    utterance.onerror = () => {
+      currentUtterance = null;
+      resolve(); // Resolve even on error to not block execution
+    };
+
+    currentUtterance = utterance;
+    window.speechSynthesis.speak(utterance);
+  });
 }

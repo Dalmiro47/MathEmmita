@@ -36,6 +36,7 @@ export default function Home() {
   }, [level, say]);
 
   useEffect(() => {
+    loadVoices();
     // This effect runs once on mount to initialize the first problem.
     newProblem(true); // Read the first problem aloud
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,6 +49,7 @@ export default function Home() {
 
     if (isCorrect) {
       setAnswerStatus("correct");
+      say("¡Correcto!");
       confetti({
         particleCount: 150,
         spread: 100,
@@ -58,8 +60,8 @@ export default function Home() {
         if (problem.operator === '÷' && Math.random() < 0.3) {
             setLevel(prev => prev === 1 ? 2 : 1);
         }
-        newProblem(false);
-      }, 2000);
+        newProblem(true);
+      }, 1500);
     } else {
       setAnswerStatus("incorrect");
       say("Oh, intenta de nuevo.");
