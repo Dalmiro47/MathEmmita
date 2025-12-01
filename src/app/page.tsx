@@ -145,7 +145,8 @@ export default function Home() {
       operand2,
       operator,
       answer,
-      question: `${operand1} ${operator} ${operand2}`
+      question: `${operand1} ${operator} ${operand2}`,
+      colorTheme: operator === '×' ? 'orange' : 'blue',
     };
 
     setProblem(newProb);
@@ -160,6 +161,11 @@ export default function Home() {
     incorrect: "border-destructive",
     revealed: "border-sky-500",
   };
+
+  const problemCardColorClass = {
+    orange: "bg-card",
+    blue: "bg-sky-50",
+  }
   
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
@@ -184,7 +190,7 @@ export default function Home() {
         <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">MathEmmita</h1>
         
         {problem ? (
-          <div className="relative p-8 bg-card rounded-2xl shadow-lg mb-8">
+          <div className={cn("relative p-8 rounded-2xl shadow-lg mb-8 transition-colors duration-500", problemCardColorClass[problem.colorTheme])}>
             <p className="font-headline text-6xl sm:text-8xl font-bold tracking-widest" aria-live="polite">
               {problem.question}
             </p>

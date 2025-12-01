@@ -4,7 +4,12 @@ export type Problem = {
   operator: '×' | '÷';
   answer: number;
   question: string;
+  colorTheme: 'orange' | 'blue';
 };
+
+// --- State for Scaffolding ---
+let lastProblem: Problem | null = null;
+
 
 // --- Problem Generation ---
 
@@ -18,36 +23,60 @@ const generateMultiplicationProblem = (): Problem => {
   const operand1 = getRandomInt(4, 9);
   const operand2 = getRandomInt(4, 9);
   const answer = operand1 * operand2;
-  return {
+  const problem: Problem = {
     operand1,
     operand2,
     operator: '×',
     answer,
     question: `${operand1} × ${operand2}`,
+    colorTheme: 'orange',
   };
+  lastProblem = problem;
+  return problem;
 };
 
-const generateDivisionProblem = (level: 1 | 2 = 1): Problem => {
-  const divisor = level === 1 ? getRandomInt(4, 9) : getRandomInt(10, 15);
-  const quotient = getRandomInt(2, 9);
-  const dividend = divisor * quotient;
+const generateDivisionProblem = (level: 1 | 2 = 1, fixedOperands?: {dividend: number, divisor: number}): Problem => {
+  let dividend: number, divisor: number, quotient: number;
 
-  return {
+  if (fixedOperands) {
+      dividend = fixedOperands.dividend;
+      divisor = fixedOperands.divisor;
+      quotient = dividend / divisor;
+  } else {
+      divisor = level === 1 ? getRandomInt(4, 9) : getRandomInt(10, 15);
+      quotient = getRandomInt(2, 9);
+      dividend = divisor * quotient;
+  }
+
+  const problem: Problem = {
     operand1: dividend,
     operand2: divisor,
     operator: '÷',
     answer: quotient,
     question: `${dividend} ÷ ${divisor}`,
+    colorTheme: 'blue',
   };
+  lastProblem = problem;
+  return problem;
 };
 
 export function generateProblem(level: 1 | 2 = 1): Problem {
+  // Scaffolding: Check if last problem was multiplication
+  if (lastProblem && lastProblem.operator === '×' && Math.random() > 0.5) {
+      const { operand1, operand2, answer } = lastProblem;
+      // 50% chance to provide one of the inverse divisions
+      const divisor = Math.random() > 0.5 ? operand1 : operand2;
+      return generateDivisionProblem(level, { dividend: answer, divisor: divisor });
+  }
+
+  // Default behavior
   const isMultiplication = Math.random() > 0.5;
   if (isMultiplication) {
     return generateMultiplicationProblem();
   }
   return generateDivisionProblem(level);
 }
+
 
 // --- Text-to-Speech Engine ---
 
