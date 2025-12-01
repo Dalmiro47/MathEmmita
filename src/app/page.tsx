@@ -2,17 +2,22 @@
 
 import { useState, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Lightbulb, Volume2 } from "lucide-react";
+import { Lightbulb, Volume2, LogIn } from "lucide-react";
 import { generateProblem, loadVoices, speak, type Problem } from "@/lib/math-engine";
+import { getSmartProblem, saveAttempt } from "@/lib/progress-service";
 import { Keypad } from "@/components/keypad";
 import { TricksModal } from "@/components/tricks-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { useUser, useAuth } from "@/firebase";
+import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
 export default function Home() {
+  const { user, loading: userLoading } = useUser();
+  const auth = useAuth();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [userInput, setUserInput] = useState<string>("");
   const [answerStatus, setAnswerStatus] = useState<AnswerStatus>("idle");
@@ -27,27 +32,32 @@ export default function Home() {
     setIsSpeaking(false);
   }, []);
 
-  const newProblem = useCallback((shouldSpeak = false) => {
-    const p = generateProblem(level);
+  const newProblem = useCallback(async (shouldSpeak = false) => {
+    const p = user ? await getSmartProblem(user.uid, level) : generateProblem(level);
     setProblem(p);
     setUserInput("");
     setAnswerStatus("idle");
     if (shouldSpeak) {
       say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
     }
-  }, [level, say]);
+  }, [level, say, user]);
 
   useEffect(() => {
     loadVoices();
-    // This effect runs once on mount to initialize the first problem.
-    newProblem(true); // Read the first problem aloud
+    if (!userLoading && user) {
+      newProblem(true);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
+  }, [user, userLoading]);
+
   const checkAnswer = useCallback(() => {
     if (!problem || userInput === "") return;
     
     const isCorrect = parseInt(userInput, 10) === problem.answer;
+    
+    if (user) {
+      saveAttempt(user.uid, problem, isCorrect);
+    }
 
     if (isCorrect) {
       setAnswerStatus("correct");
@@ -72,7 +82,7 @@ export default function Home() {
         setUserInput("");
       }, 1500);
     }
-  }, [problem, userInput, newProblem, say]);
+  }, [problem, userInput, newProblem, say, user]);
 
   const handleShowSolution = useCallback(() => {
     if (!problem) return;
@@ -95,6 +105,13 @@ export default function Home() {
       setUserInput((prev) => prev + key);
     }
   }, [answerStatus, checkAnswer, userInput.length]);
+  
+  const handleLogin = () => {
+    if (auth) {
+      const provider = new GoogleAuthProvider();
+      signInWithRedirect(auth, provider);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -103,7 +120,6 @@ export default function Home() {
       } else if (event.key === 'Backspace') {
         handleKeyPress('backspace');
       } else if (event.key === 'Enter') {
-        // Prevent checkAnswer on Enter if debug input is focused
         if (document.activeElement?.id !== 'debug-input') {
           handleKeyPress('enter');
         }
@@ -167,6 +183,28 @@ export default function Home() {
     blue: "bg-sky-50",
   }
   
+  if (userLoading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-4">
+        <p>Cargando...</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
+        <div className="text-center">
+          <h1 className="font-headline text-4xl font-bold mb-4 text-foreground/80">Bienvenida a MathEmmita</h1>
+          <p className="text-muted-foreground mb-8">Para guardar tu progreso, por favor inicia sesión.</p>
+          <Button onClick={handleLogin} size="lg" className="bg-primary hover:bg-primary/90">
+            <LogIn className="mr-2" /> Iniciar Sesión con Google
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
        <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-100 p-2 rounded-md shadow-sm">

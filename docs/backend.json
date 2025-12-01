@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "Represents a user of the application.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the user's profile picture."
+        }
+      },
+      "required": [
+        "uid",
+        "email"
+      ]
+    },
+    "attempt": {
+      "title": "Attempt",
+      "description": "Represents a single attempt at a math problem.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who made the attempt."
+        },
+        "problem": {
+          "type": "object",
+          "properties": {
+            "operand1": {
+              "type": "number"
+            },
+            "operand2": {
+              "type": "number"
+            },
+            "operator": {
+              "type": "string",
+              "enum": [
+                "×",
+                "÷"
+              ]
+            },
+            "answer": {
+              "type": "number"
+            },
+            "question": {
+              "type": "string"
+            },
+            "colorTheme": {
+              "type": "string",
+              "enum": [
+                "orange",
+                "blue"
+              ]
+            }
+          },
+          "required": [
+            "operand1",
+            "operand2",
+            "operator",
+            "answer",
+            "question",
+            "colorTheme"
+          ]
+        },
+        "isCorrect": {
+          "type": "boolean",
+          "description": "Whether the attempt was correct or not."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the attempt was made."
+        }
+      },
+      "required": [
+        "userId",
+        "problem",
+        "isCorrect",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/user"
+      },
+      "description": "Stores user profile information."
+    },
+    "/users/{userId}/attempts/{attemptId}": {
+      "schema": {
+        "$ref": "#/entities/attempt"
+      },
+      "description": "Stores a user's attempts at math problems."
+    }
+  }
+}
