@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -273,12 +274,11 @@ export default function Home() {
             Ver Solución
           </Button>
           <Button
-            variant="outline"
-            className="rounded-full h-16 w-16 shadow-lg bg-accent/80 hover:bg-accent border-primary/50"
+            className="rounded-full h-16 w-16 shadow-lg bg-primary hover:bg-primary/90"
             onClick={() => setShowTricks(true)}
             aria-label="Mostrar truco"
           >
-            <Lightbulb className="h-8 w-8 text-primary" />
+            <Lightbulb className="h-8 w-8 text-primary-foreground" />
           </Button>
         </div>
       </div>
@@ -287,5 +287,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
