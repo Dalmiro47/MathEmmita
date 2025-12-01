@@ -171,7 +171,8 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex flex-col items-center p-4 rounded-2xl bg-orange-50/50">
         {/* Column Headers */}
-        <div className="flex w-full pl-12" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+        <div className="grid w-full" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
+            <div /> {/* Empty cell for alignment */}
             {Array.from({ length: cols }).map((_, i) => (
                 <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                     {i + 1}
@@ -218,8 +219,8 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex items-center justify-between gap-4 pt-2">
         <div className="text-left">
-          <p className="font-bold text-2xl">{filledCount}</p>
-          <p className="text-sm text-muted-foreground">puntos dibujados</p>
+          <p className="font-bold text-2xl">{filledCount} puntos</p>
+          <p className="text-sm text-muted-foreground">dibujados</p>
         </div>
         <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleReset} disabled={filledCount === 0}>
@@ -252,7 +253,7 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
         <div className="space-y-4 text-center">
             <h3 className="font-bold text-xl">Repartir en partes iguales 🎁</h3>
             <p className="text-muted-foreground">Repartimos <span className="font-bold text-sky-700">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-700">{groups}</span> cajas...</p>
-            <div className="p-4 rounded-2xl">
+            <div className="p-4 rounded-2xl bg-white">
                 <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(groups, 4)}, 1fr)`}}>
                     {Array.from({ length: groups }).map((_, groupIndex) => (
                         <div key={groupIndex} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-sky-300 bg-white">
