@@ -168,7 +168,7 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
         <div className="space-y-4 text-center">
             <h3 className="font-bold text-xl">Repartir en partes iguales 🎁</h3>
             <p className="text-muted-foreground">¡Dividir es repartir galletas en cajas!</p>
-            <div className="p-4 rounded-2xl bg-sky-50/50">
+            <div className="p-4 rounded-2xl">
                 <p className="mb-4">Repartimos <span className="font-bold text-sky-700">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-700">{groups}</span> cajas:</p>
                 <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(groups, 4)}, 1fr)`}}>
                     {Array.from({ length: groups }).map((_, groupIndex) => (
