@@ -159,7 +159,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
                     </div>
                 </div>
              </div>
-             <p className="text-lg pt-4">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos es igual a <span className="font-bold">{rows * cols}</span>.</p>
+             <p className="text-lg pt-4">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos. ¡Cuéntalos todos para saber la respuesta!</p>
         </div>
     )
 }
