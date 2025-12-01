@@ -82,17 +82,35 @@ export function generateProblem(level: 1 | 2 = 1): Problem {
 
 let voices: SpeechSynthesisVoice[] = [];
 let currentUtterance: SpeechSynthesisUtterance | null = null;
+let voicesLoaded = false;
+
+function getVoices(): Promise<SpeechSynthesisVoice[]> {
+    return new Promise(resolve => {
+        if (voices.length > 0) {
+            return resolve(voices);
+        }
+        window.speechSynthesis.onvoiceschanged = () => {
+            voices = window.speechSynthesis.getVoices();
+            voicesLoaded = true;
+            resolve(voices);
+        };
+        // Fallback for browsers that don't fire 'onvoiceschanged' consistently
+        setTimeout(() => {
+            if (voices.length === 0) {
+                voices = window.speechSynthesis.getVoices();
+                voicesLoaded = true;
+                resolve(voices);
+            }
+        }, 500);
+    });
+}
+
 
 export function loadVoices() {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
     return;
   }
-  // The 'voiceschanged' event is fired when the list of voices is ready.
-  window.speechSynthesis.onvoiceschanged = () => {
-    voices = window.speechSynthesis.getVoices();
-  };
-  // In some browsers, we need to explicitly trigger the loading.
-  voices = window.speechSynthesis.getVoices();
+  getVoices(); // Start loading voices
 }
 
 export function stopSpeech() {
@@ -109,15 +127,21 @@ export async function speak(text: string): Promise<void> {
   // Cancel any ongoing speech
   stopSpeech();
 
+  if (!voicesLoaded) {
+      await getVoices();
+  }
+
   return new Promise((resolve) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "es-ES";
 
-    // Try to find a good quality Spanish voice
-    const spanishVoice = voices.find(v => v.lang === 'es-ES' && v.name.includes('Google'));
-    utterance.voice = spanishVoice || voices.find(v => v.lang === 'es-ES') || null;
+    // Prioritize a specific male voice, then any male Spanish voice.
+    const googleMaleVoice = voices.find(v => v.lang === 'es-ES' && v.name === 'Google español');
+    const genericMaleVoice = voices.find(v => v.lang === 'es-ES' && v.gender === 'male');
     
-    utterance.pitch = 1.1;
+    utterance.voice = googleMaleVoice || genericMaleVoice || voices.find(v => v.lang === 'es-ES') || null;
+    
+    utterance.pitch = 1.0;
     utterance.rate = 0.9;
 
     utterance.onend = () => {
