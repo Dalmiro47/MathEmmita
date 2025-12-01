@@ -171,7 +171,7 @@ export const TricksModal: FC<{
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg bg-background/95 backdrop-blur-sm border-primary">
+      <DialogContent className="max-w-2xl bg-background/95 backdrop-blur-sm border-primary">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">💡 ¡Emmita, aquí tienes un truco! 💡</DialogTitle>
           <DialogDescription className="text-center text-muted-foreground pt-2">
