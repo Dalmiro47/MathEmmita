@@ -17,57 +17,74 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
   const ones = 10 - fingerDown;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex justify-center gap-4 text-4xl">
-        {/* Left Hand */}
-        <div className="flex -scale-x-100">
-          {fingers.slice(0, 5).map((finger) => (
+    <div className="flex flex-col items-center p-4 rounded-lg bg-orange-50">
+      <div className="flex justify-center items-end gap-2 sm:gap-4">
+        {/* Render fingers 1-5 (Left Hand) */}
+        {fingers.slice(0, 5).map((finger) => (
+          <div key={finger} className="flex flex-col items-center gap-2">
             <div
-              key={finger}
               className={cn(
-                "transition-transform duration-300 ease-in-out origin-bottom",
-                finger === fingerDown && "-rotate-12",
-                finger > fingerDown && "opacity-50",
+                "w-8 rounded-t-lg border-2 border-orange-300 transition-all duration-300 ease-in-out",
+                finger === fingerDown
+                  ? "h-8 bg-muted/60"
+                  : "h-24 bg-orange-200"
               )}
-              style={{ transform: `rotate(${ (6 - finger) * 15 - 45}deg)` }}
             >
               <div className={cn(
-                "w-6 h-16 bg-orange-200 border-2 border-orange-300 rounded-t-full",
-                finger === fingerDown ? "bg-primary" : ""
+                  "w-full h-5 bg-white/40 rounded-t-md",
+                   finger === fingerDown ? "opacity-50" : ""
               )}></div>
             </div>
-          ))}
-        </div>
-        {/* Right Hand */}
-        <div className="flex">
-          {fingers.slice(5, 10).map((finger) => (
-             <div
-              key={finger}
+            <span className={cn(
+              "font-bold text-lg",
+              finger === fingerDown ? "text-muted-foreground" : "text-foreground"
+            )}>{finger}</span>
+          </div>
+        ))}
+
+        {/* Gap between hands */}
+        <div className="w-8 sm:w-12"></div>
+
+        {/* Render fingers 6-10 (Right Hand) */}
+        {fingers.slice(5, 10).map((finger) => (
+          <div key={finger} className="flex flex-col items-center gap-2">
+            <div
               className={cn(
-                "transition-transform duration-300 ease-in-out origin-bottom",
-                finger === fingerDown && "rotate-12",
-                finger < fingerDown && "opacity-50",
+                "w-8 rounded-t-lg border-2 border-orange-300 transition-all duration-300 ease-in-out",
+                finger === fingerDown
+                  ? "h-8 bg-muted/60"
+                  : "h-24 bg-orange-200"
               )}
-              style={{ transform: `rotate(${ (finger - 5) * 15 - 30}deg)` }}
             >
-              <div className={cn(
-                "w-6 h-16 bg-orange-200 border-2 border-orange-300 rounded-t-full",
-                 finger === fingerDown ? "bg-primary" : ""
+               <div className={cn(
+                  "w-full h-5 bg-white/40 rounded-t-md",
+                   finger === fingerDown ? "opacity-50" : ""
               )}></div>
             </div>
-          ))}
+            <span className={cn(
+              "font-bold text-lg",
+              finger === fingerDown ? "text-muted-foreground" : "text-foreground"
+            )}>{finger}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-around w-full mt-6 text-center">
+        <div>
+          <p className="text-lg text-muted-foreground">Dedos a la izquierda</p>
+          <p className="text-5xl font-bold text-primary">{tens}</p>
+          <p className="text-sm font-bold">(Decenas)</p>
+        </div>
+        <div>
+          <p className="text-lg text-muted-foreground">Dedos a la derecha</p>
+          <p className="text-5xl font-bold text-primary">{ones}</p>
+          <p className="text-sm font-bold">(Unidades)</p>
         </div>
       </div>
-      <div className="flex justify-around w-full mt-4 text-center">
-        <div>
-          <p className="text-lg">Decenas</p>
-          <p className="text-4xl font-bold text-primary">{tens}</p>
-        </div>
-        <div>
-          <p className="text-lg">Unidades</p>
-          <p className="text-4xl font-bold text-primary">{ones}</p>
-        </div>
-      </div>
+       <div className="mt-6 text-center">
+         <p className="text-lg">¡La respuesta es...</p>
+         <p className="text-6xl font-extrabold text-green-600">{tens}{ones}</p>
+       </div>
     </div>
   );
 };
@@ -83,13 +100,10 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         return (
             <div className="space-y-4 text-center">
                 <h3 className="font-bold text-xl">¡Emmita, el truco del 9! ✨</h3>
-                <p>Emmita, imagina que tienes 10 dedos. Para multiplicar {nonNine} por 9, ¡baja tu dedo número {nonNine}!</p>
-                <div className="my-4 p-4 bg-accent/50 rounded-lg">
+                <p>Para multiplicar <span className="font-bold">{nonNine} × 9</span>, ¡baja tu dedo número <span className="font-bold">{nonNine}</span>!</p>
+                <div className="my-4">
                   <HandsIllustration fingerDown={nonNine} />
                 </div>
-                <p>Los dedos a la izquierda son las decenas: <span className="font-bold text-2xl">{tens}</span>.</p>
-                <p>Los dedos a la derecha son las unidades: <span className="font-bold text-2xl">{ones}</span>.</p>
-                <p>¡Así que la respuesta es <span className="font-bold text-3xl">{tens}{ones}</span>!</p>
             </div>
         )
     }
@@ -124,7 +138,11 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
 }
 
 
-export const TricksModal: FC<TricksModalProps> = ({ isOpen, onClose, problem }) => {
+export const TricksModal: FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    problem: Problem | null;
+}> = ({ isOpen, onClose, problem }) => {
   useEffect(() => {
     if (isOpen && problem) {
       let textToSpeak = '';
@@ -134,7 +152,7 @@ export const TricksModal: FC<TricksModalProps> = ({ isOpen, onClose, problem }) 
           const nonNine = operand1 === 9 ? operand2 : operand1;
           const tens = Math.floor(nonNine - 1);
           const ones = 9 - tens;
-          textToSpeak = `¡Emmita, el truco del 9!. Emmita, imagina que tienes 10 dedos. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda son las decenas: ${tens}. Los dedos a la derecha son las unidades: ${ones}. ¡Así que la respuesta es ${tens}${ones}!`;
+          textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda son las decenas: ${tens}. Los dedos a la derecha son las unidades: ${ones}. ¡Así que la respuesta es ${tens}${ones}!`;
         } else {
           textToSpeak = `Sumar en grupos. Emmita, ¡multiplicar ${operand1} por ${operand2} es como sumar el número ${operand1}, ${operand2} veces! ¡Tú puedes contarlos!`;
         }
