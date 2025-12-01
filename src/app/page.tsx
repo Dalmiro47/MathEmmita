@@ -214,7 +214,7 @@ export default function Home() {
           <span className="font-headline text-5xl sm:text-7xl font-bold">{userInput || "?"}</span>
         </div>
         
-        <Keypad onKeyPress={handleKeyPress} />
+        <Keypad onKeyPress={handleKeyPress} theme={problem?.colorTheme || 'orange'} />
         
         <div className="flex justify-between items-center mt-6">
           <Button
