@@ -158,7 +158,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         isComplete ? "border-green-500 bg-green-50" : "border-orange-200"
       )}>
         <div 
-          className="grid gap-2 mx-auto" 
+          className="grid gap-3 mx-auto" 
           style={{ 
             gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
             width: `${cols * 2.5}rem`,
@@ -183,7 +183,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex items-center justify-between gap-4">
         <div className="text-left">
-          <p className="font-bold text-2xl">{filledCount} <span className="text-base text-muted-foreground">/ {totalPoints}</span></p>
+          <p className="font-bold text-2xl">{filledCount}</p>
           <p className="text-sm text-muted-foreground">puntos dibujados</p>
         </div>
         <div className="flex gap-2">
