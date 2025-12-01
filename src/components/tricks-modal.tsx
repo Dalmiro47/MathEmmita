@@ -7,8 +7,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import type { FC } from 'react';
-import type { Problem } from '@/lib/math-engine';
+import { type FC, useEffect } from 'react';
+import { speak, type Problem } from '@/lib/math-engine';
 
 interface TricksModalProps {
   isOpen: boolean;
@@ -66,6 +66,31 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
 
 
 export const TricksModal: FC<TricksModalProps> = ({ isOpen, onClose, problem }) => {
+  useEffect(() => {
+    if (isOpen && problem) {
+      let textToSpeak = '';
+      if (problem.operator === '×') {
+        const { operand1, operand2 } = problem;
+        if (operand1 === 9 || operand2 === 9) {
+          const nonNine = operand1 === 9 ? operand2 : operand1;
+          const tens = Math.floor(nonNine - 1);
+          const ones = 9 - tens;
+          textToSpeak = `El truco del 9. Imagina que tienes 10 dedos. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas: ${tens}. Los dedos a la derecha son las unidades: ${ones}. ¡Así que la respuesta es ${tens}${ones}!`;
+        } else {
+          textToSpeak = `Sumar en grupos. Multiplicar ${operand1} por ${operand2} es lo mismo que sumar el número ${operand1}, un total de ${operand2} veces! ¡Tú puedes contarlos!`;
+        }
+      } else {
+        const { operand1, operand2 } = problem;
+        if (operand2 === 1) {
+          textToSpeak = `Dividir por 1 es como un espejo. Cualquier número dividido por 1 es... ¡el mismo número! Así que ${operand1} dividido por 1 es igual a ${operand1}.`;
+        } else {
+          textToSpeak = `Repartir en partes iguales. Dividir ${operand1} entre ${operand2} es buscar cuántos grupos de ${operand2} puedes hacer. Si tienes ${operand1} galletas y las repartes entre ${operand2} amigos, ¿cuántas galletas le tocan a cada uno?`;
+        }
+      }
+      speak(textToSpeak);
+    }
+  }, [isOpen, problem]);
+  
   if (!problem) return null;
 
   return (
