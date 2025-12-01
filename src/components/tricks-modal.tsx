@@ -7,13 +7,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { type FC, useEffect } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import { speak, type Problem } from '@/lib/math-engine';
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 
 const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
+  const [showAnswer, setShowAnswer] = useState(false);
   const fingers = Array.from({ length: 10 }, (_, i) => i + 1);
   const tens = fingerDown - 1;
   const ones = 10 - fingerDown;
@@ -79,9 +80,18 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
 
       {/* Final Answer */}
        <div className="mt-6 w-full">
-         <div className="bg-green-500 text-white rounded-2xl py-3 px-6 text-center shadow-lg">
-           <p className="text-lg font-medium">¡La respuesta es...</p>
-           <p className="text-6xl font-extrabold tracking-tight">{tens}{ones}</p>
+         <div 
+           className="bg-green-500 text-white rounded-2xl py-3 px-6 text-center shadow-lg transition-all duration-300 cursor-pointer"
+           onClick={() => setShowAnswer(true)}
+          >
+           {showAnswer ? (
+             <>
+              <p className="text-lg font-medium">¡La respuesta es...</p>
+              <p className="text-6xl font-extrabold tracking-tight">{tens}{ones}</p>
+             </>
+           ) : (
+             <p className="text-lg font-medium py-10">Toca aquí para ver la respuesta</p>
+           )}
          </div>
        </div>
     </div>
