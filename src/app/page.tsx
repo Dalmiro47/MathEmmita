@@ -105,11 +105,11 @@ export default function Home() {
         <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">Matemáticas con Emmita</h1>
         
         {problem ? (
-          <div className="p-8 bg-card rounded-2xl shadow-lg mb-8">
+          <div className="relative p-8 bg-card rounded-2xl shadow-lg mb-8">
             <p className="font-headline text-6xl sm:text-8xl font-bold tracking-widest" aria-live="polite">
               {problem.question}
             </p>
-            <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground" onClick={() => speak(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)}>
+            <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-muted-foreground" onClick={() => speak(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)}>
               <Volume2 className="h-6 w-6" />
               <span className="sr-only">Leer problema en voz alta</span>
             </Button>
