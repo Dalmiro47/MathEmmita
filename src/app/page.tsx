@@ -127,25 +127,6 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (['0','1','2','3','4','5','6','7','8','9'].includes(event.key)) {
-        handleKeyPress(event.key);
-      } else if (event.key === 'Backspace') {
-        handleKeyPress('backspace');
-      } else if (event.key === 'Enter') {
-        if (document.activeElement?.id !== 'debug-input') {
-          handleKeyPress('enter');
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleKeyPress]);
-
   const handleDebugSubmit = () => {
     const parts = debugInput.match(/(\d+)\s*([*x×/÷])\s*(\d+)/);
     if (!parts) {
@@ -293,5 +274,3 @@ export default function Home() {
     </main>
   );
 }
-
-    

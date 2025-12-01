@@ -61,7 +61,8 @@ export const Keypad: FC<KeypadProps> = ({ onKeyPress, theme = 'orange' }) => {
     'backspace', '0', 'enter'
   ];
 
-  const handleButtonClick = (key: string) => {
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>, key: string) => {
+    e.stopPropagation();
     onKeyPress(key);
   };
 
@@ -86,7 +87,7 @@ export const Keypad: FC<KeypadProps> = ({ onKeyPress, theme = 'orange' }) => {
         return (
           <Button
             key={key}
-            onClick={() => handleButtonClick(key)}
+            onClick={(e) => handleButtonClick(e, key)}
             variant="default"
             size="lg"
             className={cn(keypadButtonVariants({ theme, isAction: isActionKey }))}
