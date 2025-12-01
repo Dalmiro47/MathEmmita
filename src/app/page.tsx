@@ -8,6 +8,7 @@ import { Keypad } from "@/components/keypad";
 import { TricksModal } from "@/components/tricks-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 type AnswerStatus = "idle" | "correct" | "incorrect";
 
@@ -18,6 +19,7 @@ export default function Home() {
   const [showTricks, setShowTricks] = useState<boolean>(false);
   const [level, setLevel] = useState<1 | 2>(1);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [debugInput, setDebugInput] = useState("");
 
   const say = useCallback(async (text: string) => {
     setIsSpeaking(true);
@@ -91,7 +93,10 @@ export default function Home() {
       } else if (event.key === 'Backspace') {
         handleKeyPress('backspace');
       } else if (event.key === 'Enter') {
-        handleKeyPress('enter');
+        // Prevent checkAnswer on Enter if debug input is focused
+        if (document.activeElement?.id !== 'debug-input') {
+          handleKeyPress('enter');
+        }
       }
     };
 
@@ -101,6 +106,44 @@ export default function Home() {
     };
   }, [handleKeyPress]);
 
+  const handleDebugSubmit = () => {
+    const parts = debugInput.match(/(\d+)\s*([*x×/÷])\s*(\d+)/);
+    if (!parts) {
+      alert("Formato inválido. Usa 'a * b' o 'a / b'.");
+      return;
+    }
+    
+    const [, op1, op, op2] = parts;
+    const operand1 = parseInt(op1, 10);
+    const operand2 = parseInt(op2, 10);
+    const operator = ['*', 'x', '×'].includes(op) ? '×' : '÷';
+
+    if (isNaN(operand1) || isNaN(operand2)) {
+      alert("Números inválidos.");
+      return;
+    }
+
+    if (operator === '÷' && operand1 % operand2 !== 0) {
+      alert("La división debe ser exacta para este juego.");
+      return;
+    }
+
+    const answer = operator === '×' ? operand1 * operand2 : operand1 / operand2;
+
+    const newProb: Problem = {
+      operand1,
+      operand2,
+      operator,
+      answer,
+      question: `${operand1} ${operator} ${operand2}`
+    };
+
+    setProblem(newProb);
+    setUserInput("");
+    setAnswerStatus("idle");
+    say(`¿Cuánto es ${newProb.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
+  };
+
   const statusColorClass = {
     idle: "border-muted",
     correct: "border-green-500",
@@ -109,6 +152,23 @@ export default function Home() {
   
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
+       <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-100 p-2 rounded-md shadow-sm">
+        <Input
+          id="debug-input"
+          type="text"
+          value={debugInput}
+          onChange={(e) => setDebugInput(e.target.value)}
+          placeholder="Ej: 4*9 o 36/4"
+          className="w-36 h-8 text-sm"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleDebugSubmit();
+            }
+          }}
+        />
+        <Button onClick={handleDebugSubmit} size="sm" className="h-8">Probar</Button>
+      </div>
+
       <div className="relative w-full max-w-md text-center">
         <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">Matemáticas con Emmita</h1>
         
