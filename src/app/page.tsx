@@ -25,17 +25,19 @@ export default function Home() {
     setIsSpeaking(false);
   }, []);
 
-  const newProblem = useCallback(() => {
+  const newProblem = useCallback((shouldSpeak = false) => {
     const p = generateProblem(level);
     setProblem(p);
     setUserInput("");
     setAnswerStatus("idle");
-    say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
+    if (shouldSpeak) {
+      say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
+    }
   }, [level, say]);
 
   useEffect(() => {
     // This effect runs once on mount to initialize the first problem.
-    newProblem();
+    newProblem(true); // Read the first problem aloud
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
@@ -46,7 +48,6 @@ export default function Home() {
 
     if (isCorrect) {
       setAnswerStatus("correct");
-      say("¡Correcto! ¡Muy bien!");
       confetti({
         particleCount: 150,
         spread: 100,
@@ -54,11 +55,10 @@ export default function Home() {
         colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
       });
       setTimeout(() => {
-        // Occasionally change division level for variety
         if (problem.operator === '÷' && Math.random() < 0.3) {
             setLevel(prev => prev === 1 ? 2 : 1);
         }
-        newProblem();
+        newProblem(false);
       }, 2000);
     } else {
       setAnswerStatus("incorrect");
