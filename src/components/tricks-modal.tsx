@@ -171,9 +171,9 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex justify-center items-start gap-4 p-4 rounded-2xl bg-orange-50/50">
         {/* Row Labels */}
-        <div className="flex flex-col justify-around h-full pt-8">
+        <div className="flex flex-col justify-start pt-[2.5rem] gap-2">
             {Array.from({ length: rows }).map((_, i) => (
-                <div key={`row-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
+                <div key={`row-label-${i}`} className="flex items-center justify-center h-8 w-8 text-lg font-mono text-muted-foreground">
                     {i + 1}
                 </div>
             ))}
@@ -181,9 +181,9 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
         <div className="flex flex-col items-center">
             {/* Column Labels */}
-            <div className="flex justify-around w-full">
+            <div className="flex justify-around w-full gap-2">
                 {Array.from({ length: cols }).map((_, i) => (
-                    <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
+                    <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-8 text-lg font-mono text-muted-foreground">
                         {i + 1}
                     </div>
                 ))}
@@ -361,5 +361,3 @@ export const TricksModal: FC<{
     </Dialog>
   );
 };
-
-    
