@@ -173,10 +173,8 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         {/* UNIFIED GRID: Using a single grid container ensures perfect alignment between headers and body */}
         <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
             
-            {/* 1. Empty Corner Cell */}
+            {/* 1. Empty Corner Cell + Column Headers */}
             <div /> 
-            
-            {/* 2. Column Headers (1 to Cols) */}
             {Array.from({ length: cols }).map((_, i) => (
                 <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                     {i + 1}
@@ -252,22 +250,37 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
     const itemsPerGroup = operand1 / operand2;
 
     return (
-        <div className="space-y-4 text-center">
+        <div className="space-y-6 text-center">
             <h3 className="font-bold text-xl">Repartir en partes iguales 🎁</h3>
-            <p className="text-muted-foreground">Repartimos <span className="font-bold text-sky-700">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-700">{groups}</span> cajas...</p>
-            <div className="p-4 rounded-2xl bg-white">
-                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(groups, 4)}, 1fr)`}}>
+            
+            <p className="text-muted-foreground text-lg">
+              Repartimos <span className="font-bold text-sky-600">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-600">{groups}</span> cajas...
+            </p>
+
+            {/* Contenedor principal de las cajas */}
+            <div className="p-6 rounded-3xl bg-sky-50 border-2 border-sky-100">
+                <div 
+                  className="flex flex-wrap justify-center gap-4"
+                >
                     {Array.from({ length: groups }).map((_, groupIndex) => (
-                        <div key={groupIndex} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-sky-300 bg-white">
-                            <p className="font-bold text-sky-800">Caja {groupIndex + 1}</p>
-                            <div className="flex flex-wrap justify-center gap-2">
+                        <div 
+                          key={groupIndex} 
+                          className="relative flex items-center justify-center w-24 h-24 bg-white border-4 border-sky-200 rounded-2xl shadow-sm"
+                        >
+                            {/* Patrón de Dados: Grid fijo de 3 columnas para alinear mejor hasta 9 puntos */}
+                            <div className="grid grid-cols-3 gap-1.5 p-2">
                                 {Array.from({ length: itemsPerGroup }).map((_, itemIndex) => (
                                     <motion.div
                                         key={itemIndex}
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        transition={{ delay: (groupIndex * itemsPerGroup + itemIndex) * 0.08, type: "spring", stiffness: 300, damping: 15 }}
-                                        className="w-5 h-5 bg-sky-500 rounded-full"
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ 
+                                          delay: (groupIndex * 0.1) + (itemIndex * 0.05), 
+                                          type: "spring", 
+                                          stiffness: 400, 
+                                          damping: 15 
+                                        }}
+                                        className="w-4 h-4 bg-sky-500 rounded-full shadow-sm"
                                     />
                                 ))}
                             </div>
@@ -275,7 +288,12 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
                     ))}
                 </div>
             </div>
-            <p className="text-lg">En cada caja hay <span className="font-bold">{itemsPerGroup}</span> galletas. ¡Esa es la respuesta!</p>
+
+            <div className="bg-sky-100/50 p-4 rounded-xl inline-block">
+              <p className="text-xl text-sky-900">
+                En cada caja hay <span className="font-bold text-3xl mx-2">{itemsPerGroup}</span> galletas.
+              </p>
+            </div>
         </div>
     )
 }
