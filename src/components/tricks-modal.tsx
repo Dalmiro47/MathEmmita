@@ -198,18 +198,16 @@ export const TricksModal: FC<{
         const { operand1, operand2 } = problem;
         if (operand1 === 9 || operand2 === 9) {
           const nonNine = operand1 === 9 ? operand2 : operand1;
-          const tens = Math.floor(nonNine - 1);
-          const ones = 9 - tens;
-          textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda son las decenas: ${tens}. Los dedos a la derecha son las unidades: ${ones}. ¡Así que la respuesta es ${tens}${ones}!`;
+          textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas, y los de la derecha son las unidades. ¡Ahora mira los números y dime la respuesta!`;
         } else {
-          textToSpeak = `Sumar en grupos. Emmita, ¡multiplicar ${operand1} por ${operand2} es como sumar el número ${operand1}, ${operand2} veces! ¡Tú puedes contarlos!`;
+          textToSpeak = `¡Sumar en grupos! Emmita, multiplicar ${operand1} por ${operand2} es lo mismo que sumar el número ${operand1}, ${operand2} veces. ¡Mira los grupos de puntos!`;
         }
       } else {
         const { operand1, operand2 } = problem;
         if (operand2 === 1) {
           textToSpeak = `¡Dividir por 1 es fácil!. Emmita, cualquier número dividido por 1 es... ¡el mismo número! Así que ${operand1} dividido por 1 es igual a ${operand1}.`;
         } else {
-          textToSpeak = `Repartir en partes iguales. Emmita, dividir ${operand1} entre ${operand2} es buscar cuántos grupos de ${operand2} puedes hacer. Si tienes ${operand1} galletas y las repartes entre ${operand2} amigos, ¿cuántas le tocan a cada uno?`;
+          textToSpeak = `¡Repartir en partes iguales! Emmita, dividir ${operand1} entre ${operand2} es como repartir ${operand1} galletas en ${operand2} cajas. ¿Cuántas galletas hay en cada caja?`;
         }
       }
       speak(textToSpeak);
