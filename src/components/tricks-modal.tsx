@@ -173,8 +173,10 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         {/* UNIFIED GRID: Using a single grid container ensures perfect alignment between headers and body */}
         <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
             
-            {/* 1. Empty Corner Cell + Column Headers */}
+            {/* 1. Empty Corner Cell */}
             <div /> 
+            
+            {/* 2. Column Headers (1 to Cols) */}
             {Array.from({ length: cols }).map((_, i) => (
                 <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                     {i + 1}
@@ -237,6 +239,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 }
 
 const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
+    // Caso especial dividir por 1 (se mantiene igual porque no requiere reparto)
     if (operand2 === 1) {
         return (
             <div className="space-y-4 text-center">
@@ -246,53 +249,123 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
         )
     }
     
+    // Lógica Interactiva
+    const totalItems = operand1;
     const groups = operand2;
-    const itemsPerGroup = operand1 / operand2;
+    const [distributedCount, setDistributedCount] = useState(0);
+    
+    // Cuántos items tiene cada caja actualmente
+    const getItemsInGroup = (groupIndex: number) => {
+        const fullRounds = Math.floor(distributedCount / groups);
+        const extra = groupIndex < (distributedCount % groups) ? 1 : 0;
+        return fullRounds + extra;
+    };
+
+    // Qué caja recibe la siguiente (para resaltar)
+    const nextTargetGroup = distributedCount < totalItems ? distributedCount % groups : -1;
+    const isComplete = distributedCount === totalItems;
+
+    const handleDistribute = () => {
+        if (distributedCount < totalItems) {
+            setDistributedCount(prev => prev + 1);
+        }
+    };
+
+    const handleReset = () => {
+        setDistributedCount(0);
+    };
+
+    const handleAutoDistribute = () => {
+        setDistributedCount(totalItems);
+    };
 
     return (
         <div className="space-y-6 text-center">
-            <h3 className="font-bold text-xl">Repartir en partes iguales 🎁</h3>
+            <h3 className="font-bold text-xl">Repartir una a una 🍪</h3>
             
-            <p className="text-muted-foreground text-lg">
-              Repartimos <span className="font-bold text-sky-600">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-600">{groups}</span> cajas...
-            </p>
+            {!isComplete ? (
+                <p className="text-muted-foreground text-lg">
+                  Imagina tu hoja de papel. Tienes <span className="font-bold text-sky-600">{totalItems}</span> galletas.
+                  <br/>
+                  Ve dándolas una por una a cada caja hasta llegar a {totalItems}.
+                </p>
+            ) : (
+                <div className="flex items-center justify-center gap-2 text-green-600 font-medium animate-pulse">
+                   <CheckCircle2 className="h-6 w-6" />
+                   <p className="text-xl">¡Reparto terminado!</p>
+                </div>
+            )}
 
-            {/* Contenedor principal de las cajas */}
-            <div className="p-6 rounded-3xl bg-sky-50 border-2 border-sky-100">
-                <div 
-                  className="flex flex-wrap justify-center gap-4"
-                >
-                    {Array.from({ length: groups }).map((_, groupIndex) => (
-                        <div 
-                          key={groupIndex} 
-                          className="relative flex items-center justify-center w-24 h-24 bg-white border-4 border-sky-200 rounded-2xl shadow-sm"
-                        >
-                            {/* Patrón de Dados: Grid fijo de 3 columnas para alinear mejor hasta 9 puntos */}
-                            <div className="grid grid-cols-3 gap-1.5 p-2">
-                                {Array.from({ length: itemsPerGroup }).map((_, itemIndex) => (
-                                    <motion.div
-                                        key={itemIndex}
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ 
-                                          delay: (groupIndex * 0.1) + (itemIndex * 0.05), 
-                                          type: "spring", 
-                                          stiffness: 400, 
-                                          damping: 15 
-                                        }}
-                                        className="w-4 h-4 bg-sky-500 rounded-full shadow-sm"
-                                    />
-                                ))}
+            {/* Área de Cajas */}
+            <div className="p-4 rounded-3xl bg-sky-50 border-2 border-sky-100 relative">
+                <div className="flex flex-wrap justify-center gap-4">
+                    {Array.from({ length: groups }).map((_, groupIndex) => {
+                        const itemCount = getItemsInGroup(groupIndex);
+                        const isNext = groupIndex === nextTargetGroup;
+
+                        return (
+                            <div 
+                              key={groupIndex} 
+                              className={cn(
+                                  "relative flex items-center justify-center w-20 h-24 bg-white border-4 rounded-2xl transition-all duration-300",
+                                  isNext ? "border-sky-500 scale-105 shadow-md" : "border-sky-200"
+                              )}
+                            >
+                                {/* Grid de puntos acumulados */}
+                                <div className="grid grid-cols-2 gap-1 p-1">
+                                    {Array.from({ length: itemCount }).map((_, i) => (
+                                        <motion.div
+                                            key={i}
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="w-3 h-3 bg-sky-500 rounded-full"
+                                        />
+                                    ))}
+                                </div>
+                                {/* Etiqueta numérica pequeña */}
+                                <div className="absolute -bottom-3 bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                                    {itemCount}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
-            <div className="bg-sky-100/50 p-4 rounded-xl inline-block">
-              <p className="text-xl text-sky-900">
-                En cada caja hay <span className="font-bold text-3xl mx-2">{itemsPerGroup}</span> galletas.
-              </p>
+            {/* Controles */}
+            <div className="flex flex-col items-center gap-4">
+                <div className="text-2xl font-bold font-mono bg-white px-6 py-2 rounded-xl border border-slate-200 shadow-sm">
+                    {distributedCount} / {totalItems}
+                </div>
+
+                {!isComplete ? (
+                    <Button 
+                        size="lg" 
+                        onClick={handleDistribute}
+                        className="bg-sky-500 hover:bg-sky-600 text-white text-xl px-8 py-6 rounded-full shadow-lg active:scale-95 transition-transform"
+                    >
+                        ¡Repartir una! 👆
+                    </Button>
+                ) : (
+                    <div className="bg-green-100 p-4 rounded-xl border border-green-200 animate-in zoom-in">
+                        <p className="text-lg text-green-800">
+                            Ahora cuenta cuántas hay en <strong>UNA sola caja</strong>.
+                            <br/>
+                            ¡Esa es la respuesta! ({getItemsInGroup(0)})
+                        </p>
+                    </div>
+                )}
+
+                <div className="flex gap-2 mt-2">
+                    <Button variant="ghost" size="sm" onClick={handleReset} disabled={distributedCount === 0}>
+                        <RotateCcw className="mr-2 h-4 w-4" /> Empezar de cero
+                    </Button>
+                    {!isComplete && (
+                        <Button variant="ghost" size="sm" onClick={handleAutoDistribute}>
+                            Repartir todo rápido
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     )
