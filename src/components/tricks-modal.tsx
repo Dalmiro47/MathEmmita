@@ -134,16 +134,22 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
                     <span className="font-bold text-2xl text-primary">{rows}</span>
                     <span className="text-sm text-primary/80">filas</span>
                 </div>
-                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-                    {Array.from({ length: rows * cols }).map((_, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 20 }}
-                            className="w-5 h-5 bg-orange-400 rounded-full"
-                        />
-                    ))}
+                <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center">
+                        <span className="font-bold text-2xl text-primary">{cols}</span>
+                        <span className="text-sm text-primary/80">columnas</span>
+                    </div>
+                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+                        {Array.from({ length: rows * cols }).map((_, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 20 }}
+                                className="w-5 h-5 bg-orange-400 rounded-full"
+                            />
+                        ))}
+                    </div>
                 </div>
              </div>
              <p className="text-lg">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos es igual a <span className="font-bold">{rows * cols}</span>.</p>
