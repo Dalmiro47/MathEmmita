@@ -52,11 +52,11 @@ export default function Home() {
   }, [user, userLoading]);
 
   const checkAnswer = useCallback(() => {
-    if (!problem || userInput === "" || !db) return;
+    if (!problem || userInput === "") return;
     
     const isCorrect = parseInt(userInput, 10) === problem.answer;
     
-    if (user) {
+    if (user && db) {
       saveAttempt(db, user.uid, problem, isCorrect);
     }
 
@@ -279,3 +279,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
