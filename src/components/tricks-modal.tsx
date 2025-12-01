@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -169,19 +168,22 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         </div>
       )}
 
-      <div className="flex flex-col items-center p-4 rounded-2xl bg-orange-50/50">
-        {/* Column Headers */}
-        <div className="grid w-full" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
-            <div /> {/* Empty cell for alignment */}
+      <div className="flex justify-center p-4 rounded-2xl bg-orange-50/50">
+        
+        {/* UNIFIED GRID: Using a single grid container ensures perfect alignment between headers and body */}
+        <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
+            
+            {/* 1. Empty Corner Cell */}
+            <div /> 
+            
+            {/* 2. Column Headers (1 to Cols) */}
             {Array.from({ length: cols }).map((_, i) => (
                 <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                     {i + 1}
                 </div>
             ))}
-        </div>
 
-        {/* Main Grid: Row labels + Dots */}
-        <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
+            {/* 3. Rows (Label + Dots) */}
             {Array.from({ length: rows }).map((_, rowIndex) => (
                 <Fragment key={`row-${rowIndex}`}>
                     {/* Row Label */}
