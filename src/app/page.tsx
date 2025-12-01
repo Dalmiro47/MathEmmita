@@ -181,7 +181,7 @@ export default function Home() {
       </div>
 
       <div className="relative w-full max-w-md text-center">
-        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">Matemmita</h1>
+        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">MathEmmita</h1>
         
         {problem ? (
           <div className="relative p-8 bg-card rounded-2xl shadow-lg mb-8">

@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Matemmita',
+  title: 'MathEmmita',
   description: 'Un juego de matemáticas accesible para niños',
 };
 
