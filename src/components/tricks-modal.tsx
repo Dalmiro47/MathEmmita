@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -121,32 +122,36 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
   const cols = Math.max(operand1, operand2);
   const totalPoints = rows * cols;
   
-  const [filledIndices, setFilledIndices] = useState(new Set<number>());
-  const isComplete = filledIndices.size === totalPoints;
+  const [filledCount, setFilledCount] = useState(0);
+  const [errorIndex, setErrorIndex] = useState<number | null>(null);
+  const isComplete = filledCount === totalPoints;
 
   useEffect(() => {
-    setFilledIndices(new Set());
+    setFilledCount(0);
+    setErrorIndex(null);
   }, [operand1, operand2]);
 
   const handleDotClick = (index: number) => {
-    setFilledIndices(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return newSet;
-    });
+    if (index === filledCount) {
+      setFilledCount(prev => prev + 1);
+      setErrorIndex(null);
+    } else {
+      setErrorIndex(filledCount);
+      setTimeout(() => setErrorIndex(null), 500); // Shake animation duration
+    }
   };
 
   const handleFillAll = () => {
-    const allIndices = Array.from({ length: totalPoints }, (_, i) => i);
-    setFilledIndices(new Set(allIndices));
+    setFilledCount(totalPoints);
   };
   
   const handleReset = () => {
-    setFilledIndices(new Set());
+    setFilledCount(0);
+  };
+  
+  const getDotShakeClass = (index: number) => {
+    if (errorIndex !== index) return "";
+    return "animate-[shake_0.5s_ease-in-out]";
   };
 
   return (
@@ -155,7 +160,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
       
       {!isComplete ? (
         <p className="text-muted-foreground">
-          ¡Toca para dibujar los puntos! Necesitas <span className="font-bold text-primary">{rows} filas</span> de <span className="font-bold text-primary">{cols} puntos</span>.
+          ¡Toca el punto que parpadea! Vamos a dibujar <span className="font-bold text-primary">{rows} filas</span> de <span className="font-bold text-primary">{cols} puntos</span> en orden.
         </p>
       ) : (
         <div className="flex items-center justify-center gap-2 text-green-600 font-medium">
@@ -166,25 +171,19 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex justify-center items-start gap-4 p-4 rounded-2xl bg-orange-50/50">
         {/* Row Labels */}
-        <div className="flex flex-col items-center justify-around h-full pt-8">
-            <span className="font-bold text-lg -rotate-90 text-primary/80">Filas</span>
-            <div className="flex flex-col justify-around h-full">
-                {Array.from({ length: rows }).map((_, i) => (
-                    <div key={`row-label-${i}`} className="flex items-center justify-center h-8 w-8 text-lg font-mono text-muted-foreground">
-                        {i + 1}
-                    </div>
-                ))}
-            </div>
+        <div className="flex flex-col justify-around h-full pt-8">
+            {Array.from({ length: rows }).map((_, i) => (
+                <div key={`row-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
+                    {i + 1}
+                </div>
+            ))}
         </div>
 
         <div className="flex flex-col items-center">
             {/* Column Labels */}
-             <div className="flex items-center justify-around w-full pb-2">
-                <span className="font-bold text-lg text-primary/80">Columnas</span>
-            </div>
             <div className="flex justify-around w-full">
                 {Array.from({ length: cols }).map((_, i) => (
-                    <div key={`col-label-${i}`} className="flex items-center justify-center h-8 w-8 text-lg font-mono text-muted-foreground">
+                    <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                         {i + 1}
                     </div>
                 ))}
@@ -201,19 +200,26 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
                   gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
                 }}
               >
-                {Array.from({ length: totalPoints }).map((_, i) => (
-                  <button
+                {Array.from({ length: totalPoints }).map((_, i) => {
+                  const isFilled = i < filledCount;
+                  const isNext = i === filledCount;
+                  
+                  return (
+                  <motion.button
                     key={i}
                     onClick={() => handleDotClick(i)}
                     className={cn(
                       "w-8 h-8 rounded-full transition-all duration-150 border-2",
-                      filledIndices.has(i)
+                      isFilled
                         ? "bg-orange-500 border-orange-600 shadow-sm" 
-                        : "bg-slate-200/70 border-slate-300 hover:bg-slate-300"
+                        : "bg-slate-200/70 border-slate-300",
+                      isNext && !isComplete && "animate-pulse ring-2 ring-primary ring-offset-2",
+                      getDotShakeClass(i)
                     )}
                     aria-label={`Punto ${i + 1}`}
+                    disabled={isComplete}
                   />
-                ))}
+                )})}
               </div>
             </div>
         </div>
@@ -221,11 +227,11 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex items-center justify-between gap-4 pt-2">
         <div className="text-left">
-          <p className="font-bold text-2xl">{filledIndices.size}</p>
+          <p className="font-bold text-2xl">{filledCount}</p>
           <p className="text-sm text-muted-foreground">puntos dibujados</p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleReset} disabled={filledIndices.size === 0}>
+            <Button variant="outline" size="sm" onClick={handleReset} disabled={filledCount === 0}>
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Reiniciar
             </Button>
@@ -355,3 +361,5 @@ export const TricksModal: FC<{
     </Dialog>
   );
 };
+
+    
