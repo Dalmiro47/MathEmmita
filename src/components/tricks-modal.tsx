@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { type FC, useEffect, useState } from 'react';
+import { type FC, useEffect, useState, Fragment } from 'react';
 import { speak, stopSpeech, type Problem } from '@/lib/math-engine';
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -183,9 +183,9 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         {/* Main Grid: Row labels + Dots */}
         <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
             {Array.from({ length: rows }).map((_, rowIndex) => (
-                <>
+                <Fragment key={`row-${rowIndex}`}>
                     {/* Row Label */}
-                    <div key={`row-label-${rowIndex}`} className="flex items-center justify-center h-10 w-10 pr-2 text-lg font-mono text-muted-foreground">
+                    <div className="flex items-center justify-center h-10 w-10 pr-2 text-lg font-mono text-muted-foreground">
                         {rowIndex + 1}
                     </div>
                     
@@ -212,7 +212,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
                           />
                         )
                     })}
-                </>
+                </Fragment>
             ))}
         </div>
       </div>
