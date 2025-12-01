@@ -128,31 +128,38 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
     return (
         <div className="space-y-4 text-center">
              <h3 className="font-bold text-xl">Sumar en grupos ➕</h3>
-             <p className="text-muted-foreground">¡Multiplicar es como contar filas y columnas!</p>
+             <p className="text-muted-foreground">Multiplicar es contar en filas y columnas.</p>
+             
              <div className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-orange-50">
-                <div className="flex flex-col items-center gap-2">
-                    <span className="font-bold text-2xl text-primary">{rows}</span>
-                    <span className="text-sm text-primary/80">filas</span>
+                
+                {/* Filas Label */}
+                <div className="flex flex-col items-center justify-center gap-1">
+                    <span className="font-bold text-3xl text-amber-700">{rows}</span>
+                    <span className="text-sm text-amber-600">filas</span>
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                    <div className="flex flex-col items-center">
-                        <span className="font-bold text-2xl text-primary">{cols}</span>
-                        <span className="text-sm text-primary/80">columnas</span>
+
+                <div className="flex flex-col items-center">
+                    {/* Columnas Label */}
+                    <div className="flex flex-col items-center mb-2">
+                        <span className="font-bold text-3xl text-sky-700">{cols}</span>
+                        <span className="text-sm text-sky-600">columnas</span>
                     </div>
-                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+
+                    {/* Grid de puntos */}
+                    <div 
+                      className="grid gap-2 p-4 bg-white rounded-lg border-2 border-dashed border-orange-200" 
+                      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                    >
                         {Array.from({ length: rows * cols }).map((_, i) => (
-                            <motion.div
+                            <div
                                 key={i}
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 20 }}
                                 className="w-5 h-5 bg-orange-400 rounded-full"
                             />
                         ))}
                     </div>
                 </div>
              </div>
-             <p className="text-lg">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos es igual a <span className="font-bold">{rows * cols}</span>.</p>
+             <p className="text-lg pt-4">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos es igual a <span className="font-bold">{rows * cols}</span>.</p>
         </div>
     )
 }
