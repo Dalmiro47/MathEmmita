@@ -1,3 +1,5 @@
+import { textToSpeech } from '@/ai/flows/tts-flow';
+
 export type Problem = {
   operand1: number;
   operand2: number;
@@ -49,61 +51,35 @@ export function generateProblem(level: 1 | 2 = 1): Problem {
   return generateDivisionProblem(level);
 }
 
-
 // --- Text-to-Speech Engine ---
 
-let voices: SpeechSynthesisVoice[] = [];
+let currentAudio: HTMLAudioElement | null = null;
 
-// Function to fetch and filter voices. Must be called once on the client.
+// This function is a placeholder now, as we are not using browser voices.
 export function loadVoices() {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-
-    const getVoices = () => {
-        const allVoices = window.speechSynthesis.getVoices();
-        if (allVoices.length > 0) {
-            // Prioritize specific, high-quality voices
-            let preferredVoices = allVoices.filter(voice => 
-                voice.lang.startsWith('es') && 
-                (voice.name.toLowerCase().includes('google') || voice.name.toLowerCase().includes('paulina'))
-            );
-            
-            if (preferredVoices.length > 0) {
-                voices = preferredVoices;
-            } else {
-                 // Fallback to any Spanish voice if specific ones aren't found
-                voices = allVoices.filter(voice => voice.lang.startsWith('es'));
-            }
-        }
-    };
-    
-    // Voices might load asynchronously.
-    if (window.speechSynthesis.getVoices().length > 0) {
-        getVoices();
-    } else {
-        window.speechSynthesis.onvoiceschanged = getVoices;
-    }
+  // No-op
 }
 
-
-export function speak(text: string): void {
-  if (typeof window === 'undefined' || !window.speechSynthesis) {
-    console.warn('Speech synthesis not supported on this browser.');
+export async function speak(text: string): Promise<void> {
+  if (typeof window === 'undefined') {
     return;
   }
-  
-  window.speechSynthesis.cancel(); // Cancel any speech that is currently active
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  
-  if (voices.length > 0) {
-    utterance.voice = voices[0]; // Use the first (and best) found voice
-  } else {
-      console.warn("No Spanish voices found. Using browser default.");
+  // Stop any currently playing audio
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
   }
-  
-  utterance.pitch = 1.1; // Slightly higher pitch for a friendly tone
-  utterance.rate = 0.9; // Slightly slower for clarity
-  utterance.lang = 'es-ES'; // Explicitly set language
-  
-  window.speechSynthesis.speak(utterance);
+
+  try {
+    const response = await textToSpeech(text);
+    const audioData = response.audio;
+    
+    if (audioData) {
+      currentAudio = new Audio(audioData);
+      currentAudio.play().catch(e => console.error("Audio playback failed:", e));
+    }
+  } catch (error) {
+    console.error('Failed to generate speech:', error);
+  }
 }

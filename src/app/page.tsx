@@ -17,18 +17,24 @@ export default function Home() {
   const [answerStatus, setAnswerStatus] = useState<AnswerStatus>("idle");
   const [showTricks, setShowTricks] = useState<boolean>(false);
   const [level, setLevel] = useState<1 | 2>(1);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const say = useCallback(async (text: string) => {
+    setIsSpeaking(true);
+    await speak(text);
+    setIsSpeaking(false);
+  }, []);
 
   const newProblem = useCallback(() => {
     const p = generateProblem(level);
     setProblem(p);
     setUserInput("");
     setAnswerStatus("idle");
-    setTimeout(() => speak(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`), 100);
-  }, [level]);
+    setTimeout(() => say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`), 100);
+  }, [level, say]);
 
   useEffect(() => {
-    // This effect runs once on mount to initialize voices and the first problem.
-    loadVoices();
+    // This effect runs once on mount to initialize the first problem.
     newProblem();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -40,7 +46,7 @@ export default function Home() {
 
     if (isCorrect) {
       setAnswerStatus("correct");
-      speak("¡Correcto! ¡Muy bien!");
+      say("¡Correcto! ¡Muy bien!");
       confetti({
         particleCount: 150,
         spread: 100,
@@ -56,13 +62,13 @@ export default function Home() {
       }, 2000);
     } else {
       setAnswerStatus("incorrect");
-      speak("Oh, intenta de nuevo.");
+      say("Oh, intenta de nuevo.");
       setTimeout(() => {
         setAnswerStatus("idle");
         setUserInput("");
       }, 1500);
     }
-  }, [problem, userInput, newProblem]);
+  }, [problem, userInput, newProblem, say]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (answerStatus === 'correct') return;
@@ -109,7 +115,7 @@ export default function Home() {
             <p className="font-headline text-6xl sm:text-8xl font-bold tracking-widest" aria-live="polite">
               {problem.question}
             </p>
-            <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-muted-foreground" onClick={() => speak(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)}>
+            <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-muted-foreground" onClick={() => say(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)} disabled={isSpeaking}>
               <Volume2 className="h-6 w-6" />
               <span className="sr-only">Leer problema en voz alta</span>
             </Button>
