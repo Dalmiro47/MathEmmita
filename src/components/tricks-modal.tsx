@@ -100,12 +100,8 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
 
 
 const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
-    // Implement the 9s trick
     if (operand1 === 9 || operand2 === 9) {
         const nonNine = operand1 === 9 ? operand2 : operand1;
-        const tens = Math.floor(nonNine - 1);
-        const ones = 9 - tens;
-
         return (
             <div className="space-y-4 text-center">
                 <h3 className="font-bold text-xl">¡Emmita, el truco del 9! ✨</h3>
@@ -117,12 +113,31 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         )
     }
 
+    const rows = Math.min(operand1, operand2);
+    const cols = Math.max(operand1, operand2);
+
     return (
         <div className="space-y-4 text-center">
              <h3 className="font-bold text-xl">Sumar en grupos ➕</h3>
-             <p>Emmita, ¡multiplicar <span className="font-bold">{operand1} × {operand2}</span> es como sumar el número <span className="font-bold">{operand1}</span>, <span className="font-bold">{operand2}</span> veces!</p>
-             <p className="text-4xl mt-4">🍎...🍎...🍎</p>
-             <p>¡Tú puedes contarlos!</p>
+             <p className="text-muted-foreground">¡Multiplicar es como contar filas y columnas!</p>
+             <div className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-orange-50">
+                <div className="flex flex-col items-center gap-2">
+                    <span className="font-bold text-2xl text-primary">{rows}</span>
+                    <span className="text-sm text-primary/80">filas</span>
+                </div>
+                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+                    {Array.from({ length: rows * cols }).map((_, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 20 }}
+                            className="w-5 h-5 bg-orange-400 rounded-full"
+                        />
+                    ))}
+                </div>
+             </div>
+             <p className="text-lg">Mira, Emmita: <span className="font-bold">{rows}</span> filas de <span className="font-bold">{cols}</span> puntos es igual a <span className="font-bold">{rows * cols}</span>.</p>
         </div>
     )
 }
@@ -137,11 +152,35 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
         )
     }
     
+    const groups = operand2;
+    const itemsPerGroup = operand1 / operand2;
+
     return (
         <div className="space-y-4 text-center">
             <h3 className="font-bold text-xl">Repartir en partes iguales 🎁</h3>
-            <p>Emmita, dividir <span className="font-bold">{operand1}</span> entre <span className="font-bold">{operand2}</span> es buscar cuántos grupos de <span className="font-bold">{operand2}</span> puedes hacer.</p>
-            <p>Si tienes {operand1} galletas 🍪 y las repartes entre {operand2} amigos, ¿cuántas le tocan a cada uno?</p>
+            <p className="text-muted-foreground">¡Dividir es repartir galletas en cajas!</p>
+            <div className="p-4 rounded-2xl bg-sky-50/50">
+                <p className="mb-4">Repartimos <span className="font-bold text-sky-700">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-700">{groups}</span> cajas:</p>
+                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(groups, 4)}, 1fr)`}}>
+                    {Array.from({ length: groups }).map((_, groupIndex) => (
+                        <div key={groupIndex} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-sky-300 bg-white">
+                            <p className="font-bold text-sky-800">Caja {groupIndex + 1}</p>
+                            <div className="flex flex-wrap justify-center gap-2">
+                                {Array.from({ length: itemsPerGroup }).map((_, itemIndex) => (
+                                    <motion.div
+                                        key={itemIndex}
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ delay: (groupIndex * itemsPerGroup + itemIndex) * 0.08, type: "spring", stiffness: 300, damping: 15 }}
+                                        className="w-5 h-5 bg-sky-500 rounded-full"
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <p className="text-lg">En cada caja hay <span className="font-bold">{itemsPerGroup}</span> galletas. ¡Esa es la respuesta!</p>
         </div>
     )
 }
