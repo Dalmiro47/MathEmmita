@@ -1,3 +1,149 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import confetti from "canvas-confetti";
+import { Lightbulb, Volume2 } from "lucide-react";
+import { generateProblem, loadVoices, speak, type Problem } from "@/lib/math-engine";
+import { Keypad } from "@/components/keypad";
+import { TricksModal } from "@/components/tricks-modal";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+type AnswerStatus = "idle" | "correct" | "incorrect";
+
 export default function Home() {
-  return <></>;
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const [userInput, setUserInput] = useState<string>("");
+  const [answerStatus, setAnswerStatus] = useState<AnswerStatus>("idle");
+  const [showTricks, setShowTricks] = useState<boolean>(false);
+  const [level, setLevel] = useState<1 | 2>(1);
+
+  const newProblem = useCallback(() => {
+    const p = generateProblem(level);
+    setProblem(p);
+    setUserInput("");
+    setAnswerStatus("idle");
+    setTimeout(() => speak(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`), 100);
+  }, [level]);
+
+  useEffect(() => {
+    // This effect runs once on mount to initialize voices and the first problem.
+    loadVoices();
+    newProblem();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  const checkAnswer = useCallback(() => {
+    if (!problem || userInput === "") return;
+    
+    const isCorrect = parseInt(userInput, 10) === problem.answer;
+
+    if (isCorrect) {
+      setAnswerStatus("correct");
+      speak("¡Correcto! ¡Muy bien!");
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
+      });
+      setTimeout(() => {
+        // Occasionally change division level for variety
+        if (problem.operator === '÷' && Math.random() < 0.3) {
+            setLevel(prev => prev === 1 ? 2 : 1);
+        }
+        newProblem();
+      }, 2000);
+    } else {
+      setAnswerStatus("incorrect");
+      speak("Oh, intenta de nuevo.");
+      setTimeout(() => {
+        setAnswerStatus("idle");
+        setUserInput("");
+      }, 1500);
+    }
+  }, [problem, userInput, newProblem]);
+
+  const handleKeyPress = useCallback((key: string) => {
+    if (answerStatus === 'correct') return;
+
+    if (key === 'backspace') {
+      setUserInput((prev) => prev.slice(0, -1));
+    } else if (key === 'enter') {
+      checkAnswer();
+    } else if (/\d/.test(key) && userInput.length < 4) {
+      setUserInput((prev) => prev + key);
+    }
+  }, [answerStatus, checkAnswer]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (['0','1','2','3','4','5','6','7','8','9'].includes(event.key)) {
+        handleKeyPress(event.key);
+      } else if (event.key === 'Backspace') {
+        handleKeyPress('backspace');
+      } else if (event.key === 'Enter') {
+        handleKeyPress('enter');
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyPress]);
+
+  const statusColorClass = {
+    idle: "border-muted",
+    correct: "border-green-500",
+    incorrect: "border-destructive",
+  };
+  
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="relative w-full max-w-md text-center">
+        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">Math Explorers</h1>
+        
+        {problem ? (
+          <div className="p-8 bg-card rounded-2xl shadow-lg mb-8">
+            <p className="font-headline text-6xl sm:text-8xl font-bold tracking-widest" aria-live="polite">
+              {problem.question}
+            </p>
+            <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground" onClick={() => speak(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)}>
+              <Volume2 className="h-6 w-6" />
+              <span className="sr-only">Leer problema en voz alta</span>
+            </Button>
+          </div>
+        ) : (
+           <div className="p-8 h-40 bg-card rounded-2xl shadow-lg mb-8 flex items-center justify-center">
+             <p className="text-xl">Cargando problema...</p>
+           </div>
+        )}
+
+        <div 
+          className={cn(
+            "h-24 sm:h-28 w-full bg-card rounded-2xl shadow-inner flex items-center justify-center mb-8 border-4 transition-colors duration-300",
+            statusColorClass[answerStatus]
+          )}
+        >
+          <span className="font-headline text-5xl sm:text-7xl font-bold">{userInput || "?"}</span>
+        </div>
+        
+        <Keypad onKeyPress={handleKeyPress} />
+        
+        <div className="absolute -bottom-16 right-0 sm:-right-8">
+          <Button
+            variant="outline"
+            className="rounded-full h-16 w-16 shadow-lg bg-accent/80 hover:bg-accent border-primary/50"
+            onClick={() => setShowTricks(true)}
+            aria-label="Mostrar truco"
+          >
+            <Lightbulb className="h-8 w-8 text-primary" />
+          </Button>
+        </div>
+      </div>
+      
+      <TricksModal isOpen={showTricks} onClose={() => setShowTricks(false)} problem={problem} />
+    </main>
+  );
 }
