@@ -231,7 +231,7 @@ export default function Home() {
             }
           }}
         />
-        <Button onClick={handleDebugSubmit} size="sm" className="h-8">Probar</Button>
+        <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
       </div>
 
       <div className="relative w-full max-w-md text-center">
