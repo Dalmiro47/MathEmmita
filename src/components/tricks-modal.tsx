@@ -236,12 +236,53 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 }
 
 const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
-    // 1. Caso dividir por 1 (Texto simple, sin cambios)
     if (operand2 === 1) {
         return (
-            <div className="space-y-4 text-center">
-                 <h3 className="font-bold text-xl">¡Dividir por 1 es fácil! 🪞</h3>
-                 <p>Emmita, cualquier número dividido por 1 es... ¡el mismo número! Así que {operand1} ÷ 1 = {operand1}.</p>
+            <div className="space-y-6 text-center">
+                 <h3 className="font-bold text-xl">¡El truco del Espejo! 🪞</h3>
+                 
+                 <p className="text-lg text-muted-foreground">
+                    Dividir por 1 es como mirarse al espejo...
+                 </p>
+
+                 <div className="flex items-center justify-center gap-6 py-4">
+                    {/* El Número Original */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex flex-col items-center gap-2"
+                    >
+                        <span className="text-6xl font-bold text-sky-600">{operand1}</span>
+                        <span className="text-sm font-medium text-sky-400">Soy yo</span>
+                    </motion.div>
+
+                    {/* Acción de mirar */}
+                    <div className="text-4xl animate-pulse">👀 ➡️</div>
+
+                    {/* El Espejo */}
+                    <div className="relative">
+                        <div className="text-9xl filter drop-shadow-lg">🪞</div>
+                        {/* El Reflejo (Aparece después) */}
+                         <motion.div 
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.8, type: "spring" }}
+                            className="absolute inset-0 flex items-center justify-center pt-6 pl-1"
+                        >
+                            <span className="text-4xl font-bold text-sky-600/90">{operand1}</span>
+                        </motion.div>
+                    </div>
+                 </div>
+
+                 <div className="bg-green-100 p-4 rounded-xl border border-green-200 inline-block animate-in zoom-in duration-500 delay-1000 fill-mode-forwards opacity-0">
+                    <p className="text-lg text-green-900 font-medium">
+                        ¡Se ve igualito!
+                    </p>
+                    <p className="text-3xl font-bold text-green-700 mt-2">
+                        {operand1} ÷ 1 = {operand1}
+                    </p>
+                 </div>
             </div>
         )
     }
