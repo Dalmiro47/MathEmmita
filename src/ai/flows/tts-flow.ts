@@ -61,7 +61,7 @@ const ttsFlow = ai.defineFlow(
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Polymnia' }, // A friendly, high-quality voice
+            prebuiltVoiceConfig: { voiceName: 'autonoe' }, // A friendly, high-quality voice
           },
         },
       },
