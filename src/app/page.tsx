@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useUser, useAuth } from "@/firebase";
-import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
@@ -109,7 +109,7 @@ export default function Home() {
   const handleLogin = () => {
     if (auth) {
       const provider = new GoogleAuthProvider();
-      signInWithRedirect(auth, provider);
+      signInWithPopup(auth, provider);
     }
   };
 
