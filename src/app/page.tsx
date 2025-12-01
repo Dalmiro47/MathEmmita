@@ -111,15 +111,28 @@ export default function Home() {
   const handleKeyPress = useCallback((key: string) => {
     if (answerStatus === 'correct' || answerStatus === 'revealed' || showMedal) return;
 
-    if (key === 'backspace') {
+    if (key === 'backspace' || key === 'Backspace') {
       setUserInput((prev) => prev.slice(0, -1));
-    } else if (key === 'enter') {
+    } else if (key === 'enter' || key === 'Enter') {
       checkAnswer();
     } else if (/\d/.test(key) && userInput.length < 4) {
       setUserInput((prev) => prev + key);
     }
   }, [answerStatus, checkAnswer, userInput.length, showMedal]);
   
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      handleKeyPress(event.key);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyPress]);
+
+
   const handleLogin = () => {
     if (auth) {
       const provider = new GoogleAuthProvider();
@@ -274,3 +287,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
