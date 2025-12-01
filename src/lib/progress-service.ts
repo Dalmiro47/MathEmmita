@@ -2,6 +2,8 @@
 
 import { Firestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { generateProblem, type Problem } from './math-engine';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Saves a user's attempt at a problem to Firestore.
@@ -10,23 +12,34 @@ import { generateProblem, type Problem } from './math-engine';
  * @param problem - The problem that was attempted.
  * @param isCorrect - Whether the user's answer was correct.
  */
-export async function saveAttempt(db: Firestore, userId: string, problem: Problem, isCorrect: boolean) {
+export function saveAttempt(db: Firestore, userId: string, problem: Problem, isCorrect: boolean) {
   if (!db) {
     console.error("Firestore is not initialized.");
     return;
   }
-  try {
-    const attemptsCollection = collection(db, 'users', userId, 'attempts');
-    await addDoc(attemptsCollection, {
-      userId: userId, // include userId for easier querying if needed
+  const attemptsCollection = collection(db, 'users', userId, 'attempts');
+  const attemptData = {
+      userId: userId,
       problem,
       isCorrect,
       timestamp: serverTimestamp(),
+  };
+
+  addDoc(attemptsCollection, attemptData)
+    .catch((error) => {
+        // Instead of console.logging, create a rich, contextual error.
+        const permissionError = new FirestorePermissionError({
+          path: attemptsCollection.path,
+          operation: 'create',
+          requestResourceData: attemptData,
+        });
+        
+        // Emit the error to be caught by our central listener.
+        errorEmitter.emit('permission-error', permissionError);
+        
+        // Also log the original server error for additional context if needed.
+        console.error("Original Firestore Error:", error);
     });
-  } catch (error) {
-    console.error("Error saving attempt to Firestore:", error);
-    // Fail silently so the app can continue in offline mode.
-  }
 }
 
 /**
@@ -60,9 +73,10 @@ export async function getSmartProblem(db: Firestore | null, userId: string, leve
         return problemToRepeat;
       }
     } catch (error) {
-      console.error("Error fetching smart problem, falling back to random:", error);
-      // Fallback to random problem if Firestore fails
-      return generateProblem(level);
+        // For read operations, we can just log to console and fall back.
+        // The permission error system is most critical for writes.
+        console.error("Error fetching smart problem, falling back to random:", error);
+        return generateProblem(level);
     }
   }
 
