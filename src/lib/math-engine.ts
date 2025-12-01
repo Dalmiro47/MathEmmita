@@ -5,6 +5,7 @@ export type Problem = {
   answer: number;
   question: string;
   colorTheme: 'orange' | 'blue';
+  isRetry?: boolean;
 };
 
 // --- State for Scaffolding ---

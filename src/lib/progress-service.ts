@@ -18,9 +18,11 @@ export function saveAttempt(db: Firestore, userId: string, problem: Problem, isC
     return;
   }
   const attemptsCollection = collection(db, 'users', userId, 'attempts');
+  // Omit isRetry before saving to Firestore
+  const { isRetry, ...problemToSave } = problem;
   const attemptData = {
       userId: userId,
-      problem,
+      problem: problemToSave,
       isCorrect,
       timestamp: serverTimestamp(),
   };
@@ -70,7 +72,7 @@ export async function getSmartProblem(db: Firestore | null, userId: string, leve
         // Pick a random one from the recent incorrect list
         const problemToRepeat = incorrectProblems[Math.floor(Math.random() * incorrectProblems.length)];
         console.log("Repeating a tough one!", problemToRepeat);
-        return problemToRepeat;
+        return { ...problemToRepeat, isRetry: true };
       }
     } catch (error) {
         // For read operations, we can just log to console and fall back.

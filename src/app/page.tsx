@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { MedalOverlay } from "@/components/medal-overlay";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
@@ -26,6 +27,7 @@ export default function Home() {
   const [level, setLevel] = useState<1 | 2>(1);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [debugInput, setDebugInput] = useState("");
+  const [showMedal, setShowMedal] = useState(false);
 
   const say = useCallback(async (text: string) => {
     setIsSpeaking(true);
@@ -61,20 +63,31 @@ export default function Home() {
     }
 
     if (isCorrect) {
-      setAnswerStatus("correct");
-      say("¡Correcto!");
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
-      });
-      setTimeout(() => {
-        if (problem.operator === '÷' && Math.random() < 0.3) {
-            setLevel(prev => prev === 1 ? 2 : 1);
-        }
-        newProblem(true);
-      }, 1500);
+      if (problem.isRetry) {
+        // Special celebration for a hard-won victory
+        setShowMedal(true);
+        say("¡Guau! ¡Has superado un reto difícil! ¡Eres una campeona!");
+        setTimeout(() => {
+          setShowMedal(false);
+          newProblem(true);
+        }, 4000); // Show medal for 4 seconds
+      } else {
+        // Normal correct answer
+        setAnswerStatus("correct");
+        say("¡Correcto!");
+        confetti({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 },
+          colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
+        });
+        setTimeout(() => {
+          if (problem.operator === '÷' && Math.random() < 0.3) {
+              setLevel(prev => prev === 1 ? 2 : 1);
+          }
+          newProblem(true);
+        }, 1500);
+      }
     } else {
       setAnswerStatus("incorrect");
       say("Oh, intenta de nuevo.");
@@ -96,7 +109,7 @@ export default function Home() {
 
 
   const handleKeyPress = useCallback((key: string) => {
-    if (answerStatus === 'correct' || answerStatus === 'revealed') return;
+    if (answerStatus === 'correct' || answerStatus === 'revealed' || showMedal) return;
 
     if (key === 'backspace') {
       setUserInput((prev) => prev.slice(0, -1));
@@ -105,7 +118,7 @@ export default function Home() {
     } else if (/\d/.test(key) && userInput.length < 4) {
       setUserInput((prev) => prev + key);
     }
-  }, [answerStatus, checkAnswer, userInput.length]);
+  }, [answerStatus, checkAnswer, userInput.length, showMedal]);
   
   const handleLogin = () => {
     if (auth) {
@@ -208,6 +221,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
+       <MedalOverlay show={showMedal} />
        <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-100 p-2 rounded-md shadow-sm">
         <Input
           id="debug-input"
@@ -279,5 +293,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
