@@ -169,59 +169,50 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         </div>
       )}
 
-      <div className="flex justify-center items-start gap-4 p-4 rounded-2xl bg-orange-50/50">
-        {/* Row Labels */}
-        <div className="flex flex-col justify-start pt-[2.5rem] gap-2">
-            {Array.from({ length: rows }).map((_, i) => (
-                <div key={`row-label-${i}`} className="flex items-center justify-center h-8 w-8 text-lg font-mono text-muted-foreground">
+      <div className="flex flex-col items-center p-4 rounded-2xl bg-orange-50/50">
+        {/* Column Headers */}
+        <div className="flex w-full pl-12" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            {Array.from({ length: cols }).map((_, i) => (
+                <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                     {i + 1}
                 </div>
             ))}
         </div>
 
-        <div className="flex flex-col items-center">
-            {/* Column Labels */}
-            <div className="flex justify-around w-full gap-2">
-                {Array.from({ length: cols }).map((_, i) => (
-                    <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-8 text-lg font-mono text-muted-foreground">
-                        {i + 1}
+        {/* Main Grid: Row labels + Dots */}
+        <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
+            {Array.from({ length: rows }).map((_, rowIndex) => (
+                <>
+                    {/* Row Label */}
+                    <div key={`row-label-${rowIndex}`} className="flex items-center justify-center h-10 w-10 pr-2 text-lg font-mono text-muted-foreground">
+                        {rowIndex + 1}
                     </div>
-                ))}
-            </div>
-            
-            {/* Grid */}
-            <div className={cn(
-              "relative p-4 rounded-2xl border-2 border-dashed transition-colors duration-300 bg-white",
-              isComplete ? "border-green-500" : "border-orange-200"
-            )}>
-              <div 
-                className="grid gap-2" 
-                style={{ 
-                  gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-                }}
-              >
-                {Array.from({ length: totalPoints }).map((_, i) => {
-                  const isFilled = i < filledCount;
-                  const isNext = i === filledCount;
-                  
-                  return (
-                  <motion.button
-                    key={i}
-                    onClick={() => handleDotClick(i)}
-                    className={cn(
-                      "w-8 h-8 rounded-full transition-all duration-150 border-2",
-                      isFilled
-                        ? "bg-orange-500 border-orange-600 shadow-sm" 
-                        : "bg-slate-200/70 border-slate-300",
-                      isNext && !isComplete && "animate-pulse ring-2 ring-primary ring-offset-2",
-                      getDotShakeClass(i)
-                    )}
-                    aria-label={`Punto ${i + 1}`}
-                    disabled={isComplete}
-                  />
-                )})}
-              </div>
-            </div>
+                    
+                    {/* Dots for the row */}
+                    {Array.from({ length: cols }).map((_, colIndex) => {
+                        const i = rowIndex * cols + colIndex;
+                        const isFilled = i < filledCount;
+                        const isNext = i === filledCount;
+                        
+                        return (
+                          <motion.button
+                            key={i}
+                            onClick={() => handleDotClick(i)}
+                            className={cn(
+                              "w-10 h-10 rounded-full transition-all duration-150 border-2",
+                              isFilled
+                                ? "bg-orange-500 border-orange-600 shadow-sm" 
+                                : "bg-slate-200/70 border-slate-300",
+                              isNext && !isComplete && "animate-pulse ring-2 ring-primary ring-offset-2",
+                              getDotShakeClass(i)
+                            )}
+                            aria-label={`Punto ${i + 1}`}
+                            disabled={isComplete}
+                          />
+                        )
+                    })}
+                </>
+            ))}
         </div>
       </div>
 
@@ -260,9 +251,8 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
     return (
         <div className="space-y-4 text-center">
             <h3 className="font-bold text-xl">Repartir en partes iguales 🎁</h3>
-            <p className="text-muted-foreground">¡Dividir es repartir galletas en cajas!</p>
+            <p className="text-muted-foreground">Repartimos <span className="font-bold text-sky-700">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-700">{groups}</span> cajas...</p>
             <div className="p-4 rounded-2xl">
-                <p className="mb-4">Repartimos <span className="font-bold text-sky-700">{operand1}</span> galletas 🍪 en <span className="font-bold text-sky-700">{groups}</span> cajas:</p>
                 <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(groups, 4)}, 1fr)`}}>
                     {Array.from({ length: groups }).map((_, groupIndex) => (
                         <div key={groupIndex} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-sky-300 bg-white">
@@ -333,7 +323,7 @@ export const TricksModal: FC<{
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-background/95 backdrop-blur-sm border-primary">
+      <DialogContent className="max-w-3xl bg-background/95 backdrop-blur-sm border-primary">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">💡 ¡Emmita, aquí tienes un truco! 💡</DialogTitle>
           <DialogDescription className="text-center text-muted-foreground pt-2">
