@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 
-type AnswerStatus = "idle" | "correct" | "incorrect";
+type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
 export default function Home() {
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -74,8 +74,18 @@ export default function Home() {
     }
   }, [problem, userInput, newProblem, say]);
 
+  const handleShowSolution = useCallback(() => {
+    if (!problem) return;
+    setAnswerStatus("revealed");
+    setUserInput(String(problem.answer));
+    setTimeout(() => {
+      newProblem(true);
+    }, 2000);
+  }, [problem, newProblem]);
+
+
   const handleKeyPress = useCallback((key: string) => {
-    if (answerStatus === 'correct') return;
+    if (answerStatus === 'correct' || answerStatus === 'revealed') return;
 
     if (key === 'backspace') {
       setUserInput((prev) => prev.slice(0, -1));
@@ -148,6 +158,7 @@ export default function Home() {
     idle: "border-muted",
     correct: "border-green-500",
     incorrect: "border-destructive",
+    revealed: "border-sky-500",
   };
   
   return (
@@ -199,7 +210,15 @@ export default function Home() {
         
         <Keypad onKeyPress={handleKeyPress} />
         
-        <div className="absolute -bottom-16 right-0 sm:-right-8">
+        <div className="flex justify-between items-center mt-6">
+          <Button
+            variant="outline"
+            onClick={handleShowSolution}
+            className="bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200"
+            disabled={answerStatus === 'correct' || answerStatus === 'revealed'}
+          >
+            Ver Solución
+          </Button>
           <Button
             variant="outline"
             className="rounded-full h-16 w-16 shadow-lg bg-accent/80 hover:bg-accent border-primary/50"
