@@ -1,16 +1,16 @@
 'use client';
 
-import { db } from '@/firebase/config';
-import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { Firestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { generateProblem, type Problem } from './math-engine';
 
 /**
  * Saves a user's attempt at a problem to Firestore.
+ * @param db - The Firestore database instance.
  * @param userId - The ID of the user.
  * @param problem - The problem that was attempted.
  * @param isCorrect - Whether the user's answer was correct.
  */
-export async function saveAttempt(userId: string, problem: Problem, isCorrect: boolean) {
+export async function saveAttempt(db: Firestore, userId: string, problem: Problem, isCorrect: boolean) {
   if (!db) {
     console.error("Firestore is not initialized.");
     return;
@@ -18,6 +18,7 @@ export async function saveAttempt(userId: string, problem: Problem, isCorrect: b
   try {
     const attemptsCollection = collection(db, 'users', userId, 'attempts');
     await addDoc(attemptsCollection, {
+      userId: userId, // include userId for easier querying if needed
       problem,
       isCorrect,
       timestamp: serverTimestamp(),
@@ -31,11 +32,12 @@ export async function saveAttempt(userId: string, problem: Problem, isCorrect: b
 /**
  * "Kind Tutor" algorithm to get the next problem.
  * It has a 30% chance of repeating a recently failed problem.
+ * @param db - The Firestore database instance.
  * @param userId - The ID of the user.
  * @param level - The difficulty level for new problems.
  * @returns A Problem object.
  */
-export async function getSmartProblem(userId: string, level: 1 | 2 = 1): Promise<Problem> {
+export async function getSmartProblem(db: Firestore | null, userId: string, level: 1 | 2 = 1): Promise<Problem> {
   const shouldRepeatFailedProblem = Math.random() < 0.3;
 
   if (shouldRepeatFailedProblem && db) {
@@ -54,6 +56,7 @@ export async function getSmartProblem(userId: string, level: 1 | 2 = 1): Promise
         const incorrectProblems: Problem[] = querySnapshot.docs.map(doc => doc.data().problem as Problem);
         // Pick a random one from the recent incorrect list
         const problemToRepeat = incorrectProblems[Math.floor(Math.random() * incorrectProblems.length)];
+        console.log("Repeating a tough one!", problemToRepeat);
         return problemToRepeat;
       }
     } catch (error) {

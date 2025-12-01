@@ -10,7 +10,7 @@ import { TricksModal } from "@/components/tricks-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
@@ -18,6 +18,7 @@ type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 export default function Home() {
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [userInput, setUserInput] = useState<string>("");
   const [answerStatus, setAnswerStatus] = useState<AnswerStatus>("idle");
@@ -33,14 +34,14 @@ export default function Home() {
   }, []);
 
   const newProblem = useCallback(async (shouldSpeak = false) => {
-    const p = user ? await getSmartProblem(user.uid, level) : generateProblem(level);
+    const p = user && db ? await getSmartProblem(db, user.uid, level) : generateProblem(level);
     setProblem(p);
     setUserInput("");
     setAnswerStatus("idle");
     if (shouldSpeak) {
       say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
     }
-  }, [level, say, user]);
+  }, [level, say, user, db]);
 
   useEffect(() => {
     loadVoices();
@@ -51,12 +52,12 @@ export default function Home() {
   }, [user, userLoading]);
 
   const checkAnswer = useCallback(() => {
-    if (!problem || userInput === "") return;
+    if (!problem || userInput === "" || !db) return;
     
     const isCorrect = parseInt(userInput, 10) === problem.answer;
     
     if (user) {
-      saveAttempt(user.uid, problem, isCorrect);
+      saveAttempt(db, user.uid, problem, isCorrect);
     }
 
     if (isCorrect) {
@@ -82,7 +83,7 @@ export default function Home() {
         setUserInput("");
       }, 1500);
     }
-  }, [problem, userInput, newProblem, say, user]);
+  }, [problem, userInput, newProblem, say, user, db]);
 
   const handleShowSolution = useCallback(() => {
     if (!problem) return;
