@@ -30,7 +30,7 @@ export default function Home() {
     setProblem(p);
     setUserInput("");
     setAnswerStatus("idle");
-    setTimeout(() => say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`), 100);
+    say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
   }, [level, say]);
 
   useEffect(() => {
