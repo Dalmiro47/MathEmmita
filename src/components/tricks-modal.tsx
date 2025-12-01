@@ -170,13 +170,10 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 
       <div className="flex justify-center p-4 rounded-2xl bg-orange-50/50">
         
-        {/* UNIFIED GRID: Using a single grid container ensures perfect alignment between headers and body */}
         <div className="grid gap-2" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
             
-            {/* 1. Empty Corner Cell */}
+            {/* 1. Empty Corner Cell + Column Headers */}
             <div /> 
-            
-            {/* 2. Column Headers (1 to Cols) */}
             {Array.from({ length: cols }).map((_, i) => (
                 <div key={`col-label-${i}`} className="flex items-center justify-center h-10 w-10 text-lg font-mono text-muted-foreground">
                     {i + 1}
@@ -239,7 +236,7 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
 }
 
 const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
-    // Caso especial dividir por 1 (se mantiene igual porque no requiere reparto)
+    // 1. Caso dividir por 1 (Texto simple, sin cambios)
     if (operand2 === 1) {
         return (
             <div className="space-y-4 text-center">
@@ -248,72 +245,94 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
             </div>
         )
     }
+
+    // --- LÓGICA DEL JUEGO ---
+    const totalCookies = operand1;
+    const targetGroups = operand2;
     
-    // Lógica Interactiva
-    const totalItems = operand1;
-    const groups = operand2;
-    const [distributedCount, setDistributedCount] = useState(0);
+    // Estados
+    const [currentBoxes, setCurrentBoxes] = useState(0); // Fase 1: Cuántas cajas ha puesto
+    const [distributedCount, setDistributedCount] = useState(0); // Fase 2: Cuántas galletas repartió
     
-    // Cuántos items tiene cada caja actualmente
-    const getItemsInGroup = (groupIndex: number) => {
-        const fullRounds = Math.floor(distributedCount / groups);
-        const extra = groupIndex < (distributedCount % groups) ? 1 : 0;
-        return fullRounds + extra;
+    // Fases
+    const isSetupPhase = currentBoxes < targetGroups;
+    const isDistributionComplete = distributedCount === totalCookies;
+
+    // Lógica de Reparto
+    // Qué caja le toca recibir la galleta (0 a targetGroups - 1)
+    const nextBoxIndex = distributedCount % targetGroups;
+
+    // Helpers
+    const handleAddBox = () => {
+        if (currentBoxes < targetGroups) {
+            setCurrentBoxes(prev => prev + 1);
+        }
     };
 
-    // Qué caja recibe la siguiente (para resaltar)
-    const nextTargetGroup = distributedCount < totalItems ? distributedCount % groups : -1;
-    const isComplete = distributedCount === totalItems;
-
-    const handleDistribute = () => {
-        if (distributedCount < totalItems) {
+    const handleBoxClick = (index: number) => {
+        // Solo permitir click si ya estamos en fase de reparto Y es la caja correcta
+        if (!isSetupPhase && !isDistributionComplete && index === nextBoxIndex) {
             setDistributedCount(prev => prev + 1);
         }
     };
 
     const handleReset = () => {
+        setCurrentBoxes(0);
         setDistributedCount(0);
     };
 
-    const handleAutoDistribute = () => {
-        setDistributedCount(totalItems);
+    // Calcular items por caja para renderizar
+    const getItemsInBox = (index: number) => {
+        const fullRounds = Math.floor(distributedCount / targetGroups);
+        const extra = index < (distributedCount % targetGroups) ? 1 : 0;
+        return fullRounds + extra;
     };
 
     return (
         <div className="space-y-6 text-center">
-            <h3 className="font-bold text-xl">Repartir una a una 🍪</h3>
-            
-            {!isComplete ? (
-                <p className="text-muted-foreground text-lg">
-                  Imagina tu hoja de papel. Tienes <span className="font-bold text-sky-600">{totalItems}</span> galletas.
-                  <br/>
-                  Ve dándolas una por una a cada caja hasta llegar a {totalItems}.
-                </p>
-            ) : (
-                <div className="flex items-center justify-center gap-2 text-green-600 font-medium animate-pulse">
-                   <CheckCircle2 className="h-6 w-6" />
-                   <p className="text-xl">¡Reparto terminado!</p>
-                </div>
-            )}
+            <h3 className="font-bold text-xl">
+                {isSetupPhase ? "Paso 1: Pon las cajas 📦" : "Paso 2: ¡A repartir! 🍪"}
+            </h3>
 
-            {/* Área de Cajas */}
-            <div className="p-4 rounded-3xl bg-sky-50 border-2 border-sky-100 relative">
+            {/* Instrucciones Dinámicas */}
+            <p className="text-muted-foreground text-lg min-h-[3rem]">
+                {isSetupPhase 
+                    ? <span>Necesitamos dividir entre <span className="font-bold text-sky-600">{targetGroups}</span>. ¡Pon {targetGroups} cajas en la mesa!</span>
+                    : !isDistributionComplete 
+                        ? <span>Toca la <strong>caja resaltada</strong> para guardar una galleta.</span>
+                        : <span className="text-green-600 font-bold flex items-center justify-center gap-2"><CheckCircle2 className="w-5 h-5"/> ¡Reparto terminado!</span>
+                }
+            </p>
+
+            {/* ZONA DE JUEGO */}
+            <div className="p-4 rounded-3xl bg-sky-50 border-2 border-sky-100 min-h-[16rem] flex flex-col justify-center">
+                
+                {/* Visualización de Cajas */}
                 <div className="flex flex-wrap justify-center gap-4">
-                    {Array.from({ length: groups }).map((_, groupIndex) => {
-                        const itemCount = getItemsInGroup(groupIndex);
-                        const isNext = groupIndex === nextTargetGroup;
+                    {Array.from({ length: currentBoxes }).map((_, index) => {
+                        const isNextTarget = !isSetupPhase && !isDistributionComplete && index === nextBoxIndex;
+                        const items = getItemsInBox(index);
 
                         return (
-                            <div 
-                              key={groupIndex} 
-                              className={cn(
-                                  "relative flex items-center justify-center w-20 h-24 bg-white border-4 rounded-2xl transition-all duration-300",
-                                  isNext ? "border-sky-500 scale-105 shadow-md" : "border-sky-200"
-                              )}
+                            <motion.div
+                                key={index}
+                                initial={{ scale: 0 }}
+                                animate={{ 
+                                    scale: 1,
+                                    borderColor: isNextTarget ? "#0ea5e9" : "#bae6fd", // sky-500 vs sky-200
+                                    borderWidth: isNextTarget ? "4px" : "4px",
+                                    boxShadow: isNextTarget ? "0 0 15px rgba(14, 165, 233, 0.3)" : "none"
+                                }}
+                                whileTap={isNextTarget ? { scale: 0.9 } : {}}
+                                onClick={() => handleBoxClick(index)}
+                                className={cn(
+                                    "relative w-20 h-24 bg-white rounded-2xl flex items-center justify-center cursor-pointer transition-colors",
+                                    !isNextTarget && !isSetupPhase && !isDistributionComplete && "opacity-60 grayscale-[0.3]" // Apagar las que no tocan
+                                )}
                             >
-                                {/* Grid de puntos acumulados */}
+                                {/* Grid de Galletas dentro de la caja */}
                                 <div className="grid grid-cols-2 gap-1 p-1">
-                                    {Array.from({ length: itemCount }).map((_, i) => (
+                                    {Array.from({ length: items }).map((_, i) => (
                                         <motion.div
                                             key={i}
                                             initial={{ scale: 0 }}
@@ -322,54 +341,59 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
                                         />
                                     ))}
                                 </div>
-                                {/* Etiqueta numérica pequeña */}
-                                <div className="absolute -bottom-3 bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">
-                                    {itemCount}
-                                </div>
-                            </div>
+                                
+                                {/* Etiqueta de cantidad (Opcional, ayuda a subitizar) */}
+                                {items > 0 && (
+                                    <div className="absolute -bottom-3 bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                                        {items}
+                                    </div>
+                                )}
+                            </motion.div>
                         );
                     })}
                 </div>
-            </div>
 
-            {/* Controles */}
-            <div className="flex flex-col items-center gap-4">
-                <div className="text-2xl font-bold font-mono bg-white px-6 py-2 rounded-xl border border-slate-200 shadow-sm">
-                    {distributedCount} / {totalItems}
-                </div>
-
-                {!isComplete ? (
-                    <Button 
-                        size="lg" 
-                        onClick={handleDistribute}
-                        className="bg-sky-500 hover:bg-sky-600 text-white text-xl px-8 py-6 rounded-full shadow-lg active:scale-95 transition-transform"
-                    >
-                        ¡Repartir una! 👆
-                    </Button>
-                ) : (
-                    <div className="bg-green-100 p-4 rounded-xl border border-green-200 animate-in zoom-in">
-                        <p className="text-lg text-green-800">
-                            Ahora cuenta cuántas hay en <strong>UNA sola caja</strong>.
-                            <br/>
-                            ¡Esa es la respuesta! ({getItemsInGroup(0)})
-                        </p>
+                {/* Botón Fase 1: Agregar Caja */}
+                {isSetupPhase && (
+                    <div className="mt-8">
+                        <Button 
+                            size="lg" 
+                            onClick={handleAddBox}
+                            className="bg-sky-500 hover:bg-sky-600 text-white text-lg rounded-full px-8 shadow-lg"
+                        >
+                            <Plus className="mr-2 h-5 w-5" /> Agregar Caja ({currentBoxes}/{targetGroups})
+                        </Button>
                     </div>
                 )}
+            </div>
 
-                <div className="flex gap-2 mt-2">
-                    <Button variant="ghost" size="sm" onClick={handleReset} disabled={distributedCount === 0}>
-                        <RotateCcw className="mr-2 h-4 w-4" /> Empezar de cero
-                    </Button>
-                    {!isComplete && (
-                        <Button variant="ghost" size="sm" onClick={handleAutoDistribute}>
-                            Repartir todo rápido
-                        </Button>
+            {/* CONTADORES Y RESULTADO */}
+            {!isSetupPhase && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="text-sm font-mono text-muted-foreground">
+                        Galletas repartidas: {distributedCount} / {totalCookies}
+                    </div>
+
+                    {isDistributionComplete && (
+                        <div className="bg-green-100 p-4 rounded-xl border border-green-200">
+                             <p className="text-lg text-green-800 font-medium">
+                                ¡Bien hecho! Ahora cuenta cuántas hay en <strong>UNA sola caja</strong>.
+                                <br />
+                                ¡Esa es la respuesta!
+                            </p>
+                        </div>
                     )}
                 </div>
+            )}
+
+            <div className="pt-4">
+                <Button variant="ghost" size="sm" onClick={handleReset}>
+                    <RotateCcw className="mr-2 h-4 w-4" /> Empezar de cero
+                </Button>
             </div>
         </div>
-    )
-}
+    );
+};
 
 
 export const TricksModal: FC<{
