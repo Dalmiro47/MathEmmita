@@ -8,10 +8,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { type FC, useEffect, useState } from 'react';
-import { speak, type Problem } from '@/lib/math-engine';
+import { speak, stopSpeech, type Problem } from '@/lib/math-engine';
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Volume2, Square } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
   const [showAnswer, setShowAnswer] = useState(false);
@@ -199,28 +200,41 @@ export const TricksModal: FC<{
     onClose: () => void;
     problem: Problem | null;
 }> = ({ isOpen, onClose, problem }) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Stop speech when the modal is closed
   useEffect(() => {
-    if (isOpen && problem) {
-      let textToSpeak = '';
-      if (problem.operator === '×') {
-        const { operand1, operand2 } = problem;
-        if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
-          const nonNine = operand1 === 9 ? operand2 : operand1;
-          textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas, y los de la derecha son las unidades. ¡Ahora mira los números y dime la respuesta!`;
-        } else {
-          textToSpeak = `¡Sumar en grupos! Emmita, multiplicar ${problem.operand1} por ${problem.operand2} es lo mismo que sumar el número ${Math.max(problem.operand1, problem.operand2)}, ${Math.min(problem.operand1, problem.operand2)} veces. ¡Mira los grupos de puntos!`;
-        }
-      } else {
-        const { operand1, operand2 } = problem;
-        if (operand2 === 1) {
-          textToSpeak = `¡Dividir por 1 es fácil!. Emmita, cualquier número dividido por 1 es... ¡el mismo número! Así que ${operand1} dividido por 1 es igual a ${operand1}.`;
-        } else {
-          textToSpeak = `¡Repartir en partes iguales! Emmita, dividir ${operand1} entre ${operand2} es como repartir ${operand1} galletas en ${operand2} cajas. ¿Cuántas galletas hay en cada caja?`;
-        }
-      }
-      speak(textToSpeak);
+    if (!isOpen) {
+      stopSpeech();
+      setIsSpeaking(false);
     }
-  }, [isOpen, problem]);
+  }, [isOpen]);
+
+  const handleSpeak = async () => {
+    if (!problem) return;
+
+    let textToSpeak = '';
+    if (problem.operator === '×') {
+      const { operand1, operand2 } = problem;
+      if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
+        const nonNine = operand1 === 9 ? operand2 : operand1;
+        textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas, y los de la derecha son las unidades. ¡Inténtalo!`;
+      } else {
+        textToSpeak = `¡Sumar en grupos! Emmita, multiplicar ${problem.operand1} por ${problem.operand2} es lo mismo que sumar el número ${Math.max(problem.operand1, problem.operand2)}, ${Math.min(problem.operand1, problem.operand2)} veces. ¡Mira los grupos de puntos!`;
+      }
+    } else {
+      const { operand1, operand2 } = problem;
+      if (operand2 === 1) {
+        textToSpeak = `¡Dividir por 1 es fácil!. Emmita, cualquier número dividido por 1 es... ¡el mismo número! Así que ${operand1} dividido por 1 es igual a ${operand1}.`;
+      } else {
+        textToSpeak = `¡Repartir en partes iguales! Emmita, dividir ${operand1} entre ${operand2} es como repartir ${operand1} galletas en ${operand2} cajas. ¿Cuántas galletas hay en cada caja?`;
+      }
+    }
+    
+    setIsSpeaking(true);
+    await speak(textToSpeak);
+    setIsSpeaking(false);
+  };
   
   if (!problem) return null;
 
@@ -238,6 +252,17 @@ export const TricksModal: FC<{
             <MultiplicationTrick operand1={problem.operand1} operand2={problem.operand2} /> :
             <DivisionTrick operand1={problem.operand1} operand2={problem.operand2} />
           }
+        </div>
+         <div className="flex justify-center items-center mt-4">
+          {isSpeaking ? (
+            <Button variant="destructive" onClick={() => { stopSpeech(); setIsSpeaking(false); }}>
+              <Square className="mr-2 h-4 w-4" /> Detener
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={handleSpeak}>
+              <Volume2 className="mr-2 h-4 w-4" /> Leer en voz alta
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

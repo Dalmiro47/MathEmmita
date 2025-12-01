@@ -95,6 +95,11 @@ export function loadVoices() {
   voices = window.speechSynthesis.getVoices();
 }
 
+export function stopSpeech() {
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+}
 
 export async function speak(text: string): Promise<void> {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
@@ -102,9 +107,7 @@ export async function speak(text: string): Promise<void> {
   }
 
   // Cancel any ongoing speech
-  if (window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel();
-  }
+  stopSpeech();
 
   return new Promise((resolve) => {
     const utterance = new SpeechSynthesisUtterance(text);
