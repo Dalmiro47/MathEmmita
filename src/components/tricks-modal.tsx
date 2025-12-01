@@ -23,6 +23,11 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
     'bg-purple-300', 'bg-indigo-300', 'bg-cyan-300', 'bg-emerald-300', 'bg-rose-300'
   ];
 
+  useEffect(() => {
+    // Reset when the finger number changes
+    setShowAnswer(false);
+  }, [fingerDown]);
+
   return (
     <div className="flex flex-col items-center p-2 sm:p-4 rounded-lg bg-orange-50 w-full overflow-hidden">
       {/* Hands */}
@@ -102,6 +107,9 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
 const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
     if (operand1 === 9 || operand2 === 9) {
         const nonNine = operand1 === 9 ? operand2 : operand1;
+        if (nonNine < 1 || nonNine > 10) {
+            return <p>El truco de los dedos funciona para multiplicar por 9 números del 1 al 10.</p>
+        }
         return (
             <div className="space-y-4 text-center">
                 <h3 className="font-bold text-xl">¡Emmita, el truco del 9! ✨</h3>
@@ -196,11 +204,11 @@ export const TricksModal: FC<{
       let textToSpeak = '';
       if (problem.operator === '×') {
         const { operand1, operand2 } = problem;
-        if (operand1 === 9 || operand2 === 9) {
+        if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
           const nonNine = operand1 === 9 ? operand2 : operand1;
           textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas, y los de la derecha son las unidades. ¡Ahora mira los números y dime la respuesta!`;
         } else {
-          textToSpeak = `¡Sumar en grupos! Emmita, multiplicar ${operand1} por ${operand2} es lo mismo que sumar el número ${operand1}, ${operand2} veces. ¡Mira los grupos de puntos!`;
+          textToSpeak = `¡Sumar en grupos! Emmita, multiplicar ${problem.operand1} por ${problem.operand2} es lo mismo que sumar el número ${Math.max(problem.operand1, problem.operand2)}, ${Math.min(problem.operand1, problem.operand2)} veces. ¡Mira los grupos de puntos!`;
         }
       } else {
         const { operand1, operand2 } = problem;
