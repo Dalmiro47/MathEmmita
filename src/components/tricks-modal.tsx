@@ -104,11 +104,8 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
 };
 
 const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
-  if (operand1 === 9 || operand2 === 9) {
+  if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
     const nonNine = operand1 === 9 ? operand2 : operand1;
-    if (nonNine < 1 || nonNine > 10) {
-      return <p>El truco de los dedos funciona para multiplicar por 9 números del 1 al 10.</p>
-    }
     return (
       <div className="space-y-4 text-center">
         <h3 className="font-bold text-xl">¡Emmita, el truco del 9! ✨</h3>
@@ -124,19 +121,33 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
   const cols = Math.max(operand1, operand2);
   const totalPoints = rows * cols;
   
-  const [filledCount, setFilledCount] = useState(0);
-  const isComplete = filledCount === totalPoints;
+  const [filledIndices, setFilledIndices] = useState(new Set<number>());
+  const isComplete = filledIndices.size === totalPoints;
 
   useEffect(() => {
-    // Reset when operands change
-    setFilledCount(0);
+    setFilledIndices(new Set());
   }, [operand1, operand2]);
 
-  const handleDotClick = () => {
-    if (filledCount < totalPoints) {
-      setFilledCount(c => c + 1);
-    }
-  }
+  const handleDotClick = (index: number) => {
+    setFilledIndices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const handleFillAll = () => {
+    const allIndices = Array.from({ length: totalPoints }, (_, i) => i);
+    setFilledIndices(new Set(allIndices));
+  };
+  
+  const handleReset = () => {
+    setFilledIndices(new Set());
+  };
 
   return (
     <div className="space-y-4 text-center">
@@ -149,57 +160,80 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
       ) : (
         <div className="flex items-center justify-center gap-2 text-green-600 font-medium">
           <CheckCircle2 className="h-5 w-5" />
-          <p>¡Excelente! Ahora cuéntalos todos.</p>
+          <p>¡Excelente! Ahora cuenta todos los puntos que dibujaste.</p>
         </div>
       )}
 
-      <div className={cn(
-        "relative p-4 rounded-2xl bg-orange-50/50 border-2 border-dashed transition-colors duration-300",
-        isComplete ? "border-green-500 bg-green-50" : "border-orange-200"
-      )}>
-        <div 
-          className="grid gap-3 mx-auto" 
-          style={{ 
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            width: `${cols * 2.5}rem`,
-          }}
-        >
-          {Array.from({ length: totalPoints }).map((_, i) => (
-            <button
-              key={i}
-              onClick={handleDotClick}
-              disabled={i < filledCount}
-              className={cn(
-                "w-8 h-8 rounded-full transition-all duration-150",
-                i < filledCount 
-                  ? "bg-orange-500 shadow-sm" 
-                  : "bg-slate-200 hover:bg-slate-300"
-              )}
-              aria-label={`Punto ${i+1}`}
-            />
-          ))}
+      <div className="flex justify-center items-start gap-4 p-4 rounded-2xl bg-orange-50/50">
+        {/* Row Labels */}
+        <div className="flex flex-col items-center justify-around h-full pt-8">
+            <span className="font-bold text-lg -rotate-90 text-primary/80">Filas</span>
+            <div className="flex flex-col justify-around h-full">
+                {Array.from({ length: rows }).map((_, i) => (
+                    <div key={`row-label-${i}`} className="flex items-center justify-center h-8 w-8 text-lg font-mono text-muted-foreground">
+                        {i + 1}
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        <div className="flex flex-col items-center">
+            {/* Column Labels */}
+             <div className="flex items-center justify-around w-full pb-2">
+                <span className="font-bold text-lg text-primary/80">Columnas</span>
+            </div>
+            <div className="flex justify-around w-full">
+                {Array.from({ length: cols }).map((_, i) => (
+                    <div key={`col-label-${i}`} className="flex items-center justify-center h-8 w-8 text-lg font-mono text-muted-foreground">
+                        {i + 1}
+                    </div>
+                ))}
+            </div>
+            
+            {/* Grid */}
+            <div className={cn(
+              "relative p-4 rounded-2xl border-2 border-dashed transition-colors duration-300 bg-white",
+              isComplete ? "border-green-500" : "border-orange-200"
+            )}>
+              <div 
+                className="grid gap-2" 
+                style={{ 
+                  gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                }}
+              >
+                {Array.from({ length: totalPoints }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleDotClick(i)}
+                    className={cn(
+                      "w-8 h-8 rounded-full transition-all duration-150 border-2",
+                      filledIndices.has(i)
+                        ? "bg-orange-500 border-orange-600 shadow-sm" 
+                        : "bg-slate-200/70 border-slate-300 hover:bg-slate-300"
+                    )}
+                    aria-label={`Punto ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 pt-2">
         <div className="text-left">
-          <p className="font-bold text-2xl">{filledCount}</p>
+          <p className="font-bold text-2xl">{filledIndices.size}</p>
           <p className="text-sm text-muted-foreground">puntos dibujados</p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setFilledCount(0)} disabled={filledCount === 0}>
+            <Button variant="outline" size="sm" onClick={handleReset} disabled={filledIndices.size === 0}>
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Reiniciar
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setFilledCount(totalPoints)} disabled={isComplete}>
+            <Button variant="secondary" size="sm" onClick={handleFillAll} disabled={isComplete}>
                 Dibujar todo
             </Button>
         </div>
       </div>
-
-      {isComplete && (
-         <p className="text-lg pt-4">Hay <span className="font-bold">{totalPoints}</span> puntos. ¡Esa es la respuesta!</p>
-      )}
     </div>
   )
 }
@@ -273,7 +307,7 @@ export const TricksModal: FC<{
         const nonNine = operand1 === 9 ? operand2 : operand1;
         textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas, y los de la derecha son las unidades. ¡Inténtalo!`;
       } else {
-        textToSpeak = `¡Sumar en grupos! Emmita, multiplicar ${problem.operand1} por ${problem.operand2} es lo mismo que sumar el número ${Math.max(problem.operand1, problem.operand2)}, ${Math.min(problem.operand1, problem.operand2)} veces. ¡Mira los grupos de puntos!`;
+        textToSpeak = `¡A dibujar para resolver! Emmita, para resolver ${problem.question}, tienes que dibujar una cuadrícula con ${Math.min(problem.operand1, problem.operand2)} filas y ${Math.max(problem.operand1, problem.operand2)} columnas. ¡Rellena todos los puntos y luego cuéntalos!`;
       }
     } else {
       const { operand1, operand2 } = problem;
