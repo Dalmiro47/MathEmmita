@@ -138,28 +138,26 @@ const HalfTrick: FC<{ total: number }> = ({ total }) => {
              <div className="flex justify-center items-center gap-8 py-6">
                 
                 {/* Visualización de Reparto */}
-                <div className="relative w-32 h-32 bg-sky-100 rounded-full border-4 border-sky-300 flex items-center justify-center overflow-hidden">
-                    {/* Línea divisoria */}
-                    <div className="absolute inset-y-0 left-1/2 w-1 bg-sky-400 border-r border-dashed border-white"></div>
-                    
-                    {/* Contenido */}
-                    <div className="absolute inset-0 flex">
-                        <div className="flex-1 flex items-center justify-center">
-                            <span className="font-bold text-2xl text-sky-700">{half}</span>
-                        </div>
-                        <div className="flex-1 flex items-center justify-center">
-                            <span className="font-bold text-2xl text-sky-700">{half}</span>
-                        </div>
+                <div className="relative w-32 h-32 rounded-full border-4 border-slate-300 flex items-center justify-center overflow-hidden shadow-inner bg-slate-100">
+                    {/* Mitad Izquierda */}
+                    <div className="absolute inset-y-0 left-0 w-1/2 bg-sky-100 flex items-center justify-center">
+                         <span className="font-bold text-2xl text-sky-700">{half}</span>
                     </div>
+                    {/* Mitad Derecha */}
+                    <div className="absolute inset-y-0 right-0 w-1/2 bg-indigo-100 flex items-center justify-center">
+                         <span className="font-bold text-2xl text-indigo-700">{half}</span>
+                    </div>
+                    {/* Línea divisoria */}
+                    <div className="absolute inset-y-0 left-1/2 -ml-0.5 w-1 bg-white/50 border-r-2 border-dashed border-slate-400"></div>
                 </div>
 
                 <div className="flex flex-col gap-2 text-left">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-sky-200 rounded-full flex items-center justify-center">👤</div>
+                        <div className="w-8 h-8 bg-sky-200 rounded-full flex items-center justify-center text-sky-800">👤</div>
                         <span className="font-bold text-sky-800">{half} para mí</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center">👤</div>
+                        <div className="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-800">👤</div>
                          <span className="font-bold text-indigo-800">{half} para ti</span>
                     </div>
                 </div>
