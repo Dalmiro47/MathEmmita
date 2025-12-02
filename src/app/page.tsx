@@ -15,6 +15,7 @@ import { useUser, useAuth, useFirestore } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { MedalOverlay } from "@/components/medal-overlay";
 import { RewardsSettingsModal } from "@/components/rewards-settings";
+import { RewardsBar } from "@/components/rewards-bar";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
@@ -30,6 +31,8 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [debugInput, setDebugInput] = useState("");
   const [showMedal, setShowMedal] = useState(false);
+  const [medalType, setMedalType] = useState<'superacion' | 'premio'>('superacion');
+  const [prizeMessage, setPrizeMessage] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [showRewardsSettings, setShowRewardsSettings] = useState(false);
@@ -43,7 +46,7 @@ export default function Home() {
       getUserProfile(db, user.uid).then(profile => {
         if (profile) {
           setDailyPoints(profile.dailyStats?.currentPoints ?? 0);
-          setRewardsConfig(profile.rewardsConfig ?? null);
+          setRewardsConfig(profile.rewardsConfig ?? { level1: '', level2: '', level3: ''});
         }
       });
     }
@@ -94,34 +97,69 @@ export default function Home() {
     if (isCorrect) {
       if (user && db) {
         const pointsToAdd = 100;
+        const oldPoints = dailyPoints;
+
         updateUserPoints(db, user.uid, pointsToAdd).then(newTotal => {
           setDailyPoints(newTotal);
-          // TODO: Check if a reward level is reached
+
+          // Check if a reward level is reached
+          const milestones = [
+            { points: 1000, level: 'level1' as keyof RewardsConfig },
+            { points: 2000, level: 'level2' as keyof RewardsConfig },
+            { points: 3000, level: 'level3' as keyof RewardsConfig },
+          ];
+
+          for (const milestone of milestones) {
+            if (oldPoints < milestone.points && newTotal >= milestone.points) {
+              const prizeName = rewardsConfig?.[milestone.level] || 'un premio';
+              setPrizeMessage(prizeName);
+              setMedalType('premio');
+              setShowMedal(true);
+              say(`¡Felicidades Emmita! ¡Has desbloqueado ${prizeName}!`);
+               setTimeout(() => {
+                setShowMedal(false);
+                newProblem(true);
+              }, 4000);
+              return; // Show only one prize celebration at a time
+            }
+          }
+           // If no prize, do standard correct answer flow
+            setAnswerStatus("correct");
+            say("¡Correcto!");
+            confetti({
+              particleCount: 150,
+              spread: 100,
+              origin: { y: 0.6 },
+              colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
+            });
+            setTimeout(() => {
+              newProblem(true);
+            }, 1500);
+
         });
+      } else {
+         // Fallback for when not logged in
+         setAnswerStatus("correct");
+         say("¡Correcto!");
+         confetti({
+           particleCount: 150,
+           spread: 100,
+           origin: { y: 0.6 },
+           colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
+         });
+         setTimeout(() => {
+           newProblem(true);
+         }, 1500);
       }
 
       if (problem.isRetry) {
+        setMedalType('superacion');
         setShowMedal(true);
         say("¡Guau! ¡Has superado un reto difícil! Eres una campeona, Emmita.");
         setTimeout(() => {
           setShowMedal(false);
           newProblem(true);
         }, 4000);
-      } else {
-        setAnswerStatus("correct");
-        say("¡Correcto!");
-        confetti({
-          particleCount: 150,
-          spread: 100,
-          origin: { y: 0.6 },
-          colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
-        });
-        setTimeout(() => {
-          if (problem.operator === '÷' && Math.random() < 0.3) {
-              setLevel(prev => prev === 1 ? 2 : 1);
-          }
-          newProblem(true);
-        }, 1500);
       }
     } else {
       setAnswerStatus("incorrect");
@@ -141,7 +179,7 @@ export default function Home() {
         setUserInput("");
       }, 1500);
     }
-  }, [problem, userInput, newProblem, say, user, db, attempts]);
+  }, [problem, userInput, newProblem, say, user, db, attempts, dailyPoints, rewardsConfig]);
 
   const handleShowSolution = useCallback(() => {
     if (!problem) return;
@@ -226,7 +264,7 @@ export default function Home() {
 
   const onRewardsSave = (newConfig: RewardsConfig) => {
     setRewardsConfig(newConfig);
-    setShowRewardsSettings(false);
+    // No need to close here, modal handles its own state
   };
 
   const statusColorClass = {
@@ -265,7 +303,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
-       <MedalOverlay show={showMedal} />
+       <MedalOverlay show={showMedal} type={medalType} prize={prizeMessage} />
        <RewardsSettingsModal
         isOpen={showRewardsSettings}
         onClose={() => setShowRewardsSettings(false)}
@@ -298,7 +336,10 @@ export default function Home() {
       </div>
 
       <div className="relative w-full max-w-md text-center">
-        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">MathEmmita</h1>
+        <h1 className="font-headline text-3xl font-bold mb-2 text-foreground/80">MathEmmita</h1>
+        <div className="mb-6 px-4">
+          <RewardsBar currentPoints={dailyPoints} config={rewardsConfig} />
+        </div>
         
         {problem ? (
           <div className={cn("relative p-8 rounded-2xl shadow-lg mb-8 transition-colors duration-500", problemCardColorClass[problem.colorTheme])}>

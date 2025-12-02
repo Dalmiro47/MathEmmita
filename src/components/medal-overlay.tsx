@@ -1,12 +1,15 @@
+
 "use client";
 
 import { useEffect, type FC } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
-import { Award } from 'lucide-react';
+import { Award, Gift } from 'lucide-react';
 
 interface MedalOverlayProps {
   show: boolean;
+  type?: 'superacion' | 'premio';
+  prize?: string;
 }
 
 const triggerConfetti = () => {
@@ -32,7 +35,7 @@ const triggerConfetti = () => {
 };
 
 
-export const MedalOverlay: FC<MedalOverlayProps> = ({ show }) => {
+export const MedalOverlay: FC<MedalOverlayProps> = ({ show, type = 'superacion', prize }) => {
 
   useEffect(() => {
     if (show) {
@@ -43,6 +46,8 @@ export const MedalOverlay: FC<MedalOverlayProps> = ({ show }) => {
   if (!show) {
     return null;
   }
+  
+  const isPrize = type === 'premio';
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
@@ -53,14 +58,17 @@ export const MedalOverlay: FC<MedalOverlayProps> = ({ show }) => {
             className="flex flex-col items-center justify-center text-center"
         >
             <div className="relative">
-                <Award className="w-48 h-48 sm:w-64 sm:h-64 text-amber-400 filter drop-shadow-lg" strokeWidth={1} />
+                {isPrize ? 
+                    <Gift className="w-48 h-48 sm:w-64 sm:h-64 text-pink-400 filter drop-shadow-lg" strokeWidth={1} /> :
+                    <Award className="w-48 h-48 sm:w-64 sm:h-64 text-amber-400 filter drop-shadow-lg" strokeWidth={1} />
+                }
                 <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.5, type: 'spring' }}
                     className="absolute inset-0 flex items-center justify-center"
                 >
-                    <span className="text-5xl sm:text-7xl">🏆</span>
+                    <span className="text-5xl sm:text-7xl">{isPrize ? '🎁' : '🏆'}</span>
                 </motion.div>
             </div>
             
@@ -68,9 +76,12 @@ export const MedalOverlay: FC<MedalOverlayProps> = ({ show }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="font-headline font-bold text-4xl sm:text-6xl text-amber-600 mt-6"
+                className={cn(
+                    "font-headline font-bold text-4xl sm:text-6xl mt-6",
+                    isPrize ? "text-pink-600" : "text-amber-600"
+                )}
             >
-                ¡SUPERACIÓN!
+                {isPrize ? "¡PREMIO DESBLOQUEADO!" : "¡SUPERACIÓN!"}
             </motion.h2>
 
             <motion.p
@@ -79,7 +90,7 @@ export const MedalOverlay: FC<MedalOverlayProps> = ({ show }) => {
                 transition={{ delay: 0.8 }}
                 className="text-lg sm:text-2xl text-muted-foreground mt-2"
             >
-                ¡Acertaste una difícil!
+                {isPrize ? prize : "¡Acertaste una difícil!"}
             </motion.p>
         </motion.div>
     </div>
