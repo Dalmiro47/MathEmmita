@@ -93,6 +93,42 @@
         "isCorrect",
         "timestamp"
       ]
+    },
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Stores user-specific settings and progress, including daily stats and rewards.",
+      "type": "object",
+      "properties": {
+        "dailyStats": {
+          "type": "object",
+          "properties": {
+            "currentPoints": {
+              "type": "number"
+            },
+            "lastPlayedDate": {
+              "type": "string",
+              "description": "The last date the user played, in YYYY-MM-DD format."
+            }
+          }
+        },
+        "rewardsConfig": {
+          "type": "object",
+          "properties": {
+            "level1": {
+              "type": "string",
+              "description": "Prize for reaching 1000 points."
+            },
+            "level2": {
+              "type": "string",
+              "description": "Prize for reaching 2000 points."
+            },
+            "level3": {
+              "type": "string",
+              "description": "Prize for reaching 3000 points."
+            }
+          }
+        }
+      }
     }
   },
   "auth": {
@@ -103,9 +139,9 @@
   "firestore": {
     "/users/{userId}": {
       "schema": {
-        "$ref": "#/entities/user"
+        "$ref": "#/entities/userProfile"
       },
-      "description": "Stores user profile information."
+      "description": "Stores user profile information, including settings and progress."
     },
     "/users/{userId}/attempts/{attemptId}": {
       "schema": {

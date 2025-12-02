@@ -3,9 +3,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Lightbulb, Volume2, LogIn, VolumeX } from "lucide-react";
+import { Lightbulb, Volume2, LogIn, VolumeX, Settings } from "lucide-react";
 import { generateProblem, loadVoices, speak, type Problem, stopSpeech } from "@/lib/math-engine";
-import { getSmartProblem, saveAttempt } from "@/lib/progress-service";
+import { getSmartProblem, saveAttempt, getUserProfile, updateUserPoints, type RewardsConfig } from "@/lib/progress-service";
 import { Keypad } from "@/components/keypad";
 import { TricksModal } from "@/components/tricks-modal";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { MedalOverlay } from "@/components/medal-overlay";
+import { RewardsSettingsModal } from "@/components/rewards-settings";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
@@ -31,6 +32,22 @@ export default function Home() {
   const [showMedal, setShowMedal] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [showRewardsSettings, setShowRewardsSettings] = useState(false);
+
+  // Stats and Rewards
+  const [dailyPoints, setDailyPoints] = useState(0);
+  const [rewardsConfig, setRewardsConfig] = useState<RewardsConfig | null>(null);
+
+  useEffect(() => {
+    if (user && db) {
+      getUserProfile(db, user.uid).then(profile => {
+        if (profile) {
+          setDailyPoints(profile.dailyStats?.currentPoints ?? 0);
+          setRewardsConfig(profile.rewardsConfig ?? null);
+        }
+      });
+    }
+  }, [user, db]);
 
   const say = useCallback(async (text: string) => {
     if (isMuted) return;
@@ -75,16 +92,22 @@ export default function Home() {
     }
 
     if (isCorrect) {
+      if (user && db) {
+        const pointsToAdd = 100;
+        updateUserPoints(db, user.uid, pointsToAdd).then(newTotal => {
+          setDailyPoints(newTotal);
+          // TODO: Check if a reward level is reached
+        });
+      }
+
       if (problem.isRetry) {
-        // Special celebration for a hard-won victory
         setShowMedal(true);
         say("¡Guau! ¡Has superado un reto difícil! Eres una campeona, Emmita.");
         setTimeout(() => {
           setShowMedal(false);
           newProblem(true);
-        }, 4000); // Show medal for 4 seconds
+        }, 4000);
       } else {
-        // Normal correct answer
         setAnswerStatus("correct");
         say("¡Correcto!");
         confetti({
@@ -201,6 +224,11 @@ export default function Home() {
     say(`¿Cuánto es ${newProb.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
   };
 
+  const onRewardsSave = (newConfig: RewardsConfig) => {
+    setRewardsConfig(newConfig);
+    setShowRewardsSettings(false);
+  };
+
   const statusColorClass = {
     idle: "border-muted",
     correct: "border-green-500",
@@ -238,8 +266,14 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
        <MedalOverlay show={showMedal} />
+       <RewardsSettingsModal
+        isOpen={showRewardsSettings}
+        onClose={() => setShowRewardsSettings(false)}
+        onSave={onRewardsSave}
+        initialConfig={rewardsConfig}
+      />
 
-      <div className="absolute top-4 left-4">
+      <div className="absolute top-4 left-4 flex items-center gap-2">
         <Button 
           variant="outline" 
           size="icon" 
@@ -251,21 +285,32 @@ export default function Home() {
         </Button>
       </div>
 
-       <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-100 p-2 rounded-md shadow-sm">
-        <Input
-          id="debug-input"
-          type="text"
-          value={debugInput}
-          onChange={(e) => setDebugInput(e.target.value)}
-          placeholder="Ej: 4*9 o 36/4"
-          className="w-36 h-8 text-sm"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleDebugSubmit();
-            }
-          }}
-        />
-        <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
+       <div className="absolute top-4 right-4 flex items-center gap-2">
+        <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setShowRewardsSettings(true)}
+            className="bg-background/80"
+            aria-label="Configurar premios"
+        >
+            <Settings className="h-5 w-5" />
+        </Button>
+        <div className="bg-slate-100 p-2 rounded-md shadow-sm flex items-center gap-2">
+            <Input
+              id="debug-input"
+              type="text"
+              value={debugInput}
+              onChange={(e) => setDebugInput(e.target.value)}
+              placeholder="Ej: 4*9 o 36/4"
+              className="w-36 h-8 text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleDebugSubmit();
+                }
+              }}
+            />
+            <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
+        </div>
       </div>
 
       <div className="relative w-full max-w-md text-center">
@@ -331,6 +376,3 @@ export default function Home() {
     </main>
   );
 }
-
-
-      
