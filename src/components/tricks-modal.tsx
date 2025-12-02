@@ -197,6 +197,7 @@ const HalfTrick: FC<{ total: number }> = ({ total }) => {
 };
 
 const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
+  // Truco del 9 (más específico)
   if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
     const nonNine = operand1 === 9 ? operand2 : operand1;
     return (
@@ -210,12 +211,14 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
     )
   }
 
+  // Truco del 4 (Doble Doble)
   const hasFour = operand1 === 4 || operand2 === 4;
   if (hasFour) {
       const otherNum = operand1 === 4 ? operand2 : operand1;
       return <DoubleDoubleTrick num={otherNum} />;
   }
 
+  // Estrategia genérica de la cuadrícula
   const rows = Math.min(operand1, operand2);
   const cols = Math.max(operand1, operand2);
   const totalPoints = rows * cols;
@@ -559,18 +562,26 @@ export const TricksModal: FC<{
     if (!problem) return;
 
     let textToSpeak = '';
+    const { operand1, operand2 } = problem;
+
     if (problem.operator === '×') {
-      const { operand1, operand2 } = problem;
-      if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
+      const isNineTrick = (operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11);
+      const isFourTrick = operand1 === 4 || operand2 === 4;
+
+      if (isNineTrick) {
         const nonNine = operand1 === 9 ? operand2 : operand1;
         textToSpeak = `¡Emmita, el truco del 9!. Para multiplicar ${nonNine} por 9, ¡baja tu dedo número ${nonNine}!. Los dedos a la izquierda del que bajaste son las decenas, y los de la derecha son las unidades. ¡Inténtalo!`;
+      } else if (isFourTrick) {
+        const otherNum = operand1 === 4 ? operand2 : operand1;
+        textToSpeak = `¡El truco del Doble Doble! Emmita, multiplicar por 4 es lo mismo que calcular el doble, y luego, ¡calcular el doble otra vez! El doble de ${otherNum} es ${otherNum * 2}, y el doble de eso es ${otherNum * 4}.`;
       } else {
-        textToSpeak = `¡A dibujar para resolver! Emmita, para resolver ${problem.question}, tienes que dibujar una cuadrícula con ${Math.min(problem.operand1, problem.operand2)} filas y ${Math.max(problem.operand1, problem.operand2)} columnas. ¡Rellena todos los puntos y luego cuéntalos!`;
+        textToSpeak = `¡A dibujar para resolver! Emmita, para resolver ${problem.question}, tienes que dibujar una cuadrícula con ${Math.min(operand1, operand2)} filas y ${Math.max(operand1, operand2)} columnas. ¡Rellena todos los puntos y luego cuéntalos!`;
       }
-    } else {
-      const { operand1, operand2 } = problem;
+    } else { // Division
       if (operand2 === 1) {
         textToSpeak = `¡Dividir por 1 es fácil!. Emmita, cualquier número dividido por 1 es... ¡el mismo número! Así que ${operand1} dividido por 1 es igual a ${operand1}.`;
+      } else if (operand2 === 2) {
+        textToSpeak = `¡La mitad exacta! Emmita, dividir ${operand1} entre 2 es como partirlo en dos partes iguales. ¡La mitad de ${operand1} es ${operand1 / 2}!`;
       } else {
         textToSpeak = `¡Repartir en partes iguales! Emmita, dividir ${operand1} entre ${operand2} es como repartir ${operand1} galletas en ${operand2} cajas. ¿Cuántas galletas hay en cada caja?`;
       }
