@@ -62,7 +62,7 @@ export function saveAttempt(db: Firestore, userId: string, problem: Problem, isC
 
 /**
  * "Kind Tutor" algorithm to get the next problem.
- * It has a 30% chance of repeating a recently failed problem.
+ * It has a 30% chance of repeating a recently failed problem that has not been subsequently answered correctly.
  * @param db - The Firestore database instance.
  * @param userId - The ID of the user.
  * @param level - The difficulty level for new problems.
@@ -74,24 +74,52 @@ export async function getSmartProblem(db: Firestore | null, userId: string, leve
   if (shouldRepeatFailedProblem && db) {
     try {
       const attemptsCollection = collection(db, 'users', userId, 'attempts');
-      const q = query(
+      const failedAttemptsQuery = query(
         attemptsCollection,
         where('isCorrect', '==', false),
         orderBy('timestamp', 'desc'),
-        limit(5) // Look at the last 5 incorrect problems
+        limit(10) // Look at the last 10 incorrect problems
       );
       
-      const querySnapshot = await getDocs(q);
+      const failedAttemptsSnapshot = await getDocs(failedAttemptsQuery);
       
-      if (!querySnapshot.empty) {
-        const incorrectProblems: Problem[] = querySnapshot.docs.map(doc => doc.data().problem as Problem);
-        const problemToRepeat = incorrectProblems[Math.floor(Math.random() * incorrectProblems.length)];
-        console.log("Repeating a tough one!", problemToRepeat);
-        return { ...problemToRepeat, isRetry: true };
+      if (!failedAttemptsSnapshot.empty) {
+        const pendingProblems: Problem[] = [];
+
+        for (const failedDoc of failedAttemptsSnapshot.docs) {
+            const failedAttemptData = failedDoc.data();
+            const problemCandidate = failedAttemptData.problem as Problem;
+            const failedTimestamp = failedAttemptData.timestamp;
+
+            // Now, check if this problem was answered correctly *after* this specific failure.
+            const subsequentCorrectQuery = query(
+                attemptsCollection,
+                where('isCorrect', '==', true),
+                where('problem.question', '==', problemCandidate.question),
+                where('timestamp', '>', failedTimestamp),
+                limit(1)
+            );
+
+            const subsequentCorrectSnapshot = await getDocs(subsequentCorrectQuery);
+
+            // If there are NO subsequent correct answers, it's a pending problem.
+            if (subsequentCorrectSnapshot.empty) {
+                pendingProblems.push(problemCandidate);
+            }
+        }
+        
+        const uniquePendingProblems = Array.from(new Set(pendingProblems.map(p => p.question)))
+            .map(q => pendingProblems.find(p => p.question === q)!);
+
+        if (uniquePendingProblems.length > 0) {
+            const problemToRepeat = uniquePendingProblems[Math.floor(Math.random() * uniquePendingProblems.length)];
+            console.log("Repeating a tough one!", problemToRepeat);
+            return { ...problemToRepeat, isRetry: true };
+        }
       }
     } catch (error) {
         console.error("Error fetching smart problem, falling back to random:", error);
-        return generateProblem(level);
+        // Fall through to generate a new problem
     }
   }
 
