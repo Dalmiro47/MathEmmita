@@ -285,7 +285,7 @@ export default function Home() {
         </Button>
       </div>
 
-       <div className="absolute top-4 right-4 flex items-center gap-2">
+       <div className="absolute top-4 right-4">
         <Button 
             variant="outline" 
             size="icon" 
@@ -295,22 +295,6 @@ export default function Home() {
         >
             <Settings className="h-5 w-5" />
         </Button>
-        <div className="bg-slate-100 p-2 rounded-md shadow-sm flex items-center gap-2">
-            <Input
-              id="debug-input"
-              type="text"
-              value={debugInput}
-              onChange={(e) => setDebugInput(e.target.value)}
-              placeholder="Ej: 4*9 o 36/4"
-              className="w-36 h-8 text-sm"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleDebugSubmit();
-                }
-              }}
-            />
-            <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
-        </div>
       </div>
 
       <div className="relative w-full max-w-md text-center">
@@ -369,6 +353,23 @@ export default function Home() {
             </Button>
           </div>
           <div className="w-1/3"></div>
+        </div>
+
+        <div className="mt-8 bg-slate-100/80 p-2 rounded-md shadow-sm flex items-center gap-2 justify-center max-w-sm mx-auto">
+            <Input
+              id="debug-input"
+              type="text"
+              value={debugInput}
+              onChange={(e) => setDebugInput(e.target.value)}
+              placeholder="Ej: 4*9 o 36/4"
+              className="w-36 h-8 text-sm bg-white"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleDebugSubmit();
+                }
+              }}
+            />
+            <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
         </div>
       </div>
       
