@@ -15,7 +15,6 @@ import { Plus, Volume2, Square, RotateCcw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
-  const [showAnswer, setShowAnswer] = useState(false);
   const fingers = Array.from({ length: 10 }, (_, i) => i + 1);
   const tens = fingerDown - 1;
   const ones = 10 - fingerDown;
@@ -23,11 +22,6 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
     'bg-pink-300', 'bg-sky-300', 'bg-teal-300', 'bg-lime-300', 'bg-amber-300',
     'bg-purple-300', 'bg-indigo-300', 'bg-cyan-300', 'bg-emerald-300', 'bg-rose-300'
   ];
-
-  useEffect(() => {
-    // Reset when the finger number changes
-    setShowAnswer(false);
-  }, [fingerDown]);
 
   return (
     <div className="flex flex-col items-center p-2 sm:p-4 rounded-lg bg-orange-50 w-full overflow-hidden">
@@ -82,23 +76,6 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
           <p className="text-sm sm:text-base font-bold text-sky-900/70">(Unidades)</p>
         </div>
       </div>
-
-      {/* Final Answer */}
-       <div className="mt-6 w-full">
-         <div 
-           className="bg-green-500 text-white rounded-2xl py-3 px-6 text-center shadow-lg transition-all duration-300 cursor-pointer"
-           onClick={() => setShowAnswer(true)}
-          >
-           {showAnswer ? (
-             <>
-              <p className="text-lg font-medium">¡La respuesta es...</p>
-              <p className="text-6xl font-extrabold tracking-tight">{tens}{ones}</p>
-             </>
-           ) : (
-             <p className="text-lg font-medium py-10">Toca aquí para ver la respuesta</p>
-           )}
-         </div>
-       </div>
     </div>
   );
 };
@@ -375,12 +352,6 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
                             <span className="text-4xl font-bold text-sky-600/90">{operand1}</span>
                         </motion.div>
                     </div>
-                 </div>
-
-                 <div className="bg-green-100 p-4 rounded-xl border border-green-200 inline-block">
-                    <p className="text-3xl font-bold text-green-700 mt-2">
-                        {operand1} ÷ 1 = {operand1}
-                    </p>
                  </div>
             </div>
         )
