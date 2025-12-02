@@ -2,7 +2,7 @@
 
 import { type FC } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Award, Star } from 'lucide-react';
+import { Lock, Award } from 'lucide-react';
 import { type RewardsConfig } from '@/lib/progress-service';
 import { cn } from '@/lib/utils';
 import {
@@ -36,10 +36,12 @@ export const RewardsBar: FC<RewardsBarProps> = ({ currentPoints, config }) => {
   // Calcular siguiente meta para motivar
   const nextMilestone = milestones.find(m => m.points > currentPoints);
   const pointsToNext = nextMilestone ? nextMilestone.points - currentPoints : 0;
+  const nextMilestoneName = nextMilestone && config ? config[nextMilestone.level] : '';
+
 
   return (
     <TooltipProvider>
-      <div className="w-full max-w-lg mx-auto mb-6">
+      <div className="w-full max-w-lg mx-auto">
         
         {/* Header de Puntos */}
         <div className="flex justify-between items-end mb-2 px-2">
@@ -49,15 +51,10 @@ export const RewardsBar: FC<RewardsBarProps> = ({ currentPoints, config }) => {
                     {currentPoints} <span className="text-sm text-muted-foreground font-sans">/ {maxPoints}</span>
                 </span>
             </div>
-            {nextMilestone && (
-                <div className="text-xs font-medium text-sky-600 bg-sky-50 px-2 py-1 rounded-lg border border-sky-100">
-                    ¡Faltan {pointsToNext} para premio! 🚀
-                </div>
-            )}
         </div>
 
         {/* Barra Contenedora */}
-        <div className="relative h-4 bg-slate-100 rounded-full w-full mt-6 mb-8">
+        <div className="relative h-4 bg-slate-100 rounded-full w-full mt-6 mb-2">
             
           {/* Fondo de la barra */}
           <div className="absolute inset-0 bg-slate-200 rounded-full border border-slate-300 shadow-inner" />
@@ -79,10 +76,10 @@ export const RewardsBar: FC<RewardsBarProps> = ({ currentPoints, config }) => {
             return (
               <div 
                 key={milestone.level}
-                className="absolute top-1/2 -translate-y-1/2 z-10 flex flex-col items-center group"
+                className="absolute top-1/2 -translate-y-1/2 z-20 flex flex-col items-center group"
                 style={{ 
                     left: `${positionPercent}%`, 
-                    transform: 'translate(-50%, -50%)' // Centrar el icono exactamente en el punto
+                    transform: 'translate(-50%, -50%)'
                 }}
               >
                 <Tooltip>
@@ -102,7 +99,6 @@ export const RewardsBar: FC<RewardsBarProps> = ({ currentPoints, config }) => {
                         </motion.div>
                     </TooltipTrigger>
                     
-                    {/* Etiqueta Flotante siempre visible (para móvil/tablet) */}
                     <div className={cn(
                         "absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md border shadow-sm transition-all pointer-events-none",
                          isUnlocked ? "bg-amber-100 text-amber-800 border-amber-200 scale-100" : "bg-slate-100 text-slate-400 border-slate-200 scale-90"
@@ -116,7 +112,6 @@ export const RewardsBar: FC<RewardsBarProps> = ({ currentPoints, config }) => {
                     </TooltipContent>
                 </Tooltip>
                 
-                {/* Línea de marca en la barra */}
                 <div className={cn(
                     "absolute top-8 w-0.5 h-3 mt-1",
                     isUnlocked ? "bg-amber-400" : "bg-slate-300"
@@ -124,6 +119,17 @@ export const RewardsBar: FC<RewardsBarProps> = ({ currentPoints, config }) => {
               </div>
             );
           })}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-4 text-center text-sm text-muted-foreground">
+            {nextMilestone ? (
+                <p>
+                    🎁 Faltan <strong>{pointsToNext}</strong> puntos para: <strong>{nextMilestoneName || 'el siguiente premio'}</strong>
+                </p>
+            ) : (
+                <p>¡Increíble! ¡Has completado todo por hoy! 🎉</p>
+            )}
         </div>
       </div>
     </TooltipProvider>
