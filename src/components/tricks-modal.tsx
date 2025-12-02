@@ -377,10 +377,7 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
                     </div>
                  </div>
 
-                 <div className="bg-green-100 p-4 rounded-xl border border-green-200 inline-block animate-in zoom-in duration-500 delay-1000 fill-mode-forwards opacity-0">
-                    <p className="text-lg text-green-900 font-medium">
-                        ¡Se ve igualito!
-                    </p>
+                 <div className="bg-green-100 p-4 rounded-xl border border-green-200 inline-block">
                     <p className="text-3xl font-bold text-green-700 mt-2">
                         {operand1} ÷ 1 = {operand1}
                     </p>
