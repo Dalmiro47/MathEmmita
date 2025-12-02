@@ -5,6 +5,7 @@ import { useEffect, type FC } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import { Award, Gift } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MedalOverlayProps {
   show: boolean;
