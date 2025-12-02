@@ -103,6 +103,99 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
   );
 };
 
+const DoubleDoubleTrick: FC<{ num: number }> = ({ num }) => {
+  const double = num * 2;
+  const doubleDouble = double * 2;
+  
+  return (
+    <div className="space-y-6 text-center py-4">
+      <h3 className="font-bold text-xl text-amber-700">El Doble del Doble (x4) ✌️✌️</h3>
+      <p className="text-muted-foreground">Multiplicar por 4 es calcular el doble... ¡y luego el doble otra vez!</p>
+      
+      <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        
+        {/* Paso 1 */}
+        <div className="flex items-center gap-4">
+            <div className="bg-white border-2 border-amber-200 w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold shadow-sm">
+                {num}
+            </div>
+            <div className="flex flex-col items-center">
+                <span className="text-sm font-bold text-amber-500">El Doble</span>
+                <span className="text-2xl text-amber-400">➡️</span>
+            </div>
+            <div className="bg-amber-100 border-2 border-amber-300 w-20 h-20 rounded-xl flex items-center justify-center text-3xl font-bold shadow-md">
+                {double}
+            </div>
+        </div>
+
+        {/* Flecha conectora vertical */}
+        <div className="h-8 w-1 bg-amber-200/50 rounded-full my-1"></div>
+
+        {/* Paso 2 */}
+        <div className="flex items-center gap-4">
+             <div className="bg-amber-100 border-2 border-amber-300 w-20 h-20 rounded-xl flex items-center justify-center text-3xl font-bold shadow-md opacity-50">
+                {double}
+            </div>
+            <div className="flex flex-col items-center">
+                <span className="text-sm font-bold text-amber-600">El Doble (otra vez)</span>
+                <span className="text-2xl text-amber-500">➡️</span>
+            </div>
+            <div className="bg-green-100 border-4 border-green-400 w-24 h-24 rounded-2xl flex items-center justify-center text-4xl font-black text-green-700 shadow-lg scale-110">
+                {doubleDouble}
+            </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+const HalfTrick: FC<{ total: number }> = ({ total }) => {
+    const half = total / 2;
+    
+    return (
+        <div className="space-y-6 text-center py-4">
+             <h3 className="font-bold text-xl text-sky-700">La Mitad Exacta (÷2) 🌗</h3>
+             <p className="text-muted-foreground">Dividir por 2 es partir en dos partes iguales. ¡Una para ti, una para mí!</p>
+
+             <div className="flex justify-center items-center gap-8 py-6">
+                
+                {/* Visualización de Reparto */}
+                <div className="relative w-32 h-32 bg-sky-100 rounded-full border-4 border-sky-300 flex items-center justify-center overflow-hidden">
+                    {/* Línea divisoria */}
+                    <div className="absolute inset-y-0 left-1/2 w-1 bg-sky-400 border-r border-dashed border-white"></div>
+                    
+                    {/* Contenido */}
+                    <div className="absolute inset-0 flex">
+                        <div className="flex-1 flex items-center justify-center">
+                            <span className="font-bold text-2xl text-sky-700">{half}</span>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center">
+                            <span className="font-bold text-2xl text-sky-700">{half}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2 text-left">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-sky-200 rounded-full flex items-center justify-center">👤</div>
+                        <span className="font-bold text-sky-800">{half} para mí</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center">👤</div>
+                         <span className="font-bold text-indigo-800">{half} para ti</span>
+                    </div>
+                </div>
+
+             </div>
+             
+             <div className="bg-sky-50 inline-block px-4 py-2 rounded-lg border border-sky-100">
+                La mitad de <strong>{total}</strong> es <strong>{half}</strong>.
+             </div>
+        </div>
+    );
+};
+
 const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, operand2 }) => {
   if ((operand1 === 9 || operand2 === 9) && (operand1 > 0 && operand1 < 11) && (operand2 > 0 && operand2 < 11)) {
     const nonNine = operand1 === 9 ? operand2 : operand1;
@@ -115,6 +208,12 @@ const MultiplicationTrick: FC<{ operand1: number; operand2: number }> = ({ opera
         </div>
       </div>
     )
+  }
+
+  const hasFour = operand1 === 4 || operand2 === 4;
+  if (hasFour) {
+      const otherNum = operand1 === 4 ? operand2 : operand1;
+      return <DoubleDoubleTrick num={otherNum} />;
   }
 
   const rows = Math.min(operand1, operand2);
@@ -285,6 +384,10 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
                  </div>
             </div>
         )
+    }
+
+    if (operand2 === 2) {
+      return <HalfTrick total={operand1} />;
     }
 
     // --- LÓGICA DEL JUEGO ---
