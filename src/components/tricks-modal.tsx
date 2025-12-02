@@ -15,7 +15,6 @@ import { Plus, Volume2, Square, RotateCcw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
-  const [showAnswer, setShowAnswer] = useState(false);
   const fingers = Array.from({ length: 10 }, (_, i) => i + 1);
   const tens = fingerDown - 1;
   const ones = 10 - fingerDown;
@@ -23,11 +22,6 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
     'bg-pink-300', 'bg-sky-300', 'bg-teal-300', 'bg-lime-300', 'bg-amber-300',
     'bg-purple-300', 'bg-indigo-300', 'bg-cyan-300', 'bg-emerald-300', 'bg-rose-300'
   ];
-
-  useEffect(() => {
-    // Reset when the finger number changes
-    setShowAnswer(false);
-  }, [fingerDown]);
 
   return (
     <div className="flex flex-col items-center p-2 sm:p-4 rounded-lg bg-orange-50 w-full overflow-hidden">
@@ -82,23 +76,6 @@ const HandsIllustration: FC<{ fingerDown: number }> = ({ fingerDown }) => {
           <p className="text-sm sm:text-base font-bold text-sky-900/70">(Unidades)</p>
         </div>
       </div>
-
-      {/* Final Answer */}
-       <div className="mt-6 w-full">
-         <div 
-           className="bg-green-500 text-white rounded-2xl py-3 px-6 text-center shadow-lg transition-all duration-300 cursor-pointer"
-           onClick={() => setShowAnswer(true)}
-          >
-           {showAnswer ? (
-             <>
-              <p className="text-lg font-medium">¡La respuesta es...</p>
-              <p className="text-6xl font-extrabold tracking-tight">{tens}{ones}</p>
-             </>
-           ) : (
-             <p className="text-lg font-medium py-10">Toca aquí para ver la respuesta</p>
-           )}
-         </div>
-       </div>
     </div>
   );
 };
@@ -161,36 +138,30 @@ const HalfTrick: FC<{ total: number }> = ({ total }) => {
              <div className="flex justify-center items-center gap-8 py-6">
                 
                 {/* Visualización de Reparto */}
-                <div className="relative w-32 h-32 bg-sky-100 rounded-full border-4 border-sky-300 flex items-center justify-center overflow-hidden">
-                    {/* Línea divisoria */}
-                    <div className="absolute inset-y-0 left-1/2 w-1 bg-sky-400 border-r border-dashed border-white"></div>
-                    
-                    {/* Contenido */}
-                    <div className="absolute inset-0 flex">
-                        <div className="flex-1 flex items-center justify-center">
-                            <span className="font-bold text-2xl text-sky-700">{half}</span>
-                        </div>
-                        <div className="flex-1 flex items-center justify-center">
-                            <span className="font-bold text-2xl text-sky-700">{half}</span>
-                        </div>
+                <div className="relative w-32 h-32 rounded-full border-4 border-slate-300 flex items-center justify-center overflow-hidden shadow-inner bg-slate-100">
+                    {/* Mitad Izquierda */}
+                    <div className="absolute inset-y-0 left-0 w-1/2 bg-sky-100 flex items-center justify-center">
+                         <span className="font-bold text-2xl text-sky-700">{half}</span>
                     </div>
+                    {/* Mitad Derecha */}
+                    <div className="absolute inset-y-0 right-0 w-1/2 bg-indigo-100 flex items-center justify-center">
+                         <span className="font-bold text-2xl text-indigo-700">{half}</span>
+                    </div>
+                    {/* Línea divisoria */}
+                    <div className="absolute inset-y-0 left-1/2 -ml-0.5 w-1 bg-white/50 border-r-2 border-dashed border-slate-400"></div>
                 </div>
 
                 <div className="flex flex-col gap-2 text-left">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-sky-200 rounded-full flex items-center justify-center">👤</div>
+                        <div className="w-8 h-8 bg-sky-200 rounded-full flex items-center justify-center text-sky-800">👤</div>
                         <span className="font-bold text-sky-800">{half} para mí</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center">👤</div>
+                        <div className="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-800">👤</div>
                          <span className="font-bold text-indigo-800">{half} para ti</span>
                     </div>
                 </div>
 
-             </div>
-             
-             <div className="bg-sky-50 inline-block px-4 py-2 rounded-lg border border-sky-100">
-                La mitad de <strong>{total}</strong> es <strong>{half}</strong>.
              </div>
         </div>
     );
@@ -375,15 +346,6 @@ const DivisionTrick: FC<{ operand1: number; operand2: number }> = ({ operand1, o
                             <span className="text-4xl font-bold text-sky-600/90">{operand1}</span>
                         </motion.div>
                     </div>
-                 </div>
-
-                 <div className="bg-green-100 p-4 rounded-xl border border-green-200 inline-block animate-in zoom-in duration-500 delay-1000 fill-mode-forwards opacity-0">
-                    <p className="text-lg text-green-900 font-medium">
-                        ¡Se ve igualito!
-                    </p>
-                    <p className="text-3xl font-bold text-green-700 mt-2">
-                        {operand1} ÷ 1 = {operand1}
-                    </p>
                  </div>
             </div>
         )
