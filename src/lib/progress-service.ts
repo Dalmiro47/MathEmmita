@@ -1,6 +1,6 @@
 'use client';
 
-import { Firestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, doc, getDoc, runTransaction } from 'firebase/firestore';
+import { Firestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, doc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
 import { generateProblem, type Problem } from './math-engine';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
