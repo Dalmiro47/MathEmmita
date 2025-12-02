@@ -3,9 +3,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Lightbulb, Volume2, LogIn, VolumeX } from "lucide-react";
+import { Lightbulb, Volume2, LogIn, VolumeX, Settings } from "lucide-react";
 import { generateProblem, loadVoices, speak, type Problem, stopSpeech } from "@/lib/math-engine";
-import { getSmartProblem, saveAttempt } from "@/lib/progress-service";
+import { getSmartProblem, saveAttempt, getUserProfile, updateUserPoints, type RewardsConfig } from "@/lib/progress-service";
 import { Keypad } from "@/components/keypad";
 import { TricksModal } from "@/components/tricks-modal";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { MedalOverlay } from "@/components/medal-overlay";
+import { RewardsSettingsModal } from "@/components/rewards-settings";
+import { RewardsBar } from "@/components/rewards-bar";
 
 type AnswerStatus = "idle" | "correct" | "incorrect" | "revealed";
 
@@ -29,8 +31,26 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [debugInput, setDebugInput] = useState("");
   const [showMedal, setShowMedal] = useState(false);
+  const [medalType, setMedalType] = useState<'superacion' | 'premio'>('superacion');
+  const [prizeMessage, setPrizeMessage] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [showRewardsSettings, setShowRewardsSettings] = useState(false);
+
+  // Stats and Rewards
+  const [dailyPoints, setDailyPoints] = useState(0);
+  const [rewardsConfig, setRewardsConfig] = useState<RewardsConfig | null>(null);
+
+  useEffect(() => {
+    if (user && db) {
+      getUserProfile(db, user.uid).then(profile => {
+        if (profile) {
+          setDailyPoints(profile.dailyStats?.currentPoints ?? 0);
+          setRewardsConfig(profile.rewardsConfig ?? { level1: '', level2: '', level3: ''});
+        }
+      });
+    }
+  }, [user, db]);
 
   const say = useCallback(async (text: string) => {
     if (isMuted) return;
@@ -75,30 +95,71 @@ export default function Home() {
     }
 
     if (isCorrect) {
+      if (user && db) {
+        const pointsToAdd = 100;
+        const oldPoints = dailyPoints;
+
+        updateUserPoints(db, user.uid, pointsToAdd).then(newTotal => {
+          setDailyPoints(newTotal);
+
+          // Check if a reward level is reached
+          const milestones = [
+            { points: 1000, level: 'level1' as keyof RewardsConfig },
+            { points: 2000, level: 'level2' as keyof RewardsConfig },
+            { points: 3000, level: 'level3' as keyof RewardsConfig },
+          ];
+
+          for (const milestone of milestones) {
+            if (oldPoints < milestone.points && newTotal >= milestone.points) {
+              const prizeName = rewardsConfig?.[milestone.level] || 'un premio';
+              setPrizeMessage(prizeName);
+              setMedalType('premio');
+              setShowMedal(true);
+              say(`¡Felicidades Emmita! ¡Has desbloqueado ${prizeName}!`);
+               setTimeout(() => {
+                setShowMedal(false);
+                newProblem(true);
+              }, 4000);
+              return; // Show only one prize celebration at a time
+            }
+          }
+           // If no prize, do standard correct answer flow
+            setAnswerStatus("correct");
+            say("¡Correcto!");
+            confetti({
+              particleCount: 150,
+              spread: 100,
+              origin: { y: 0.6 },
+              colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
+            });
+            setTimeout(() => {
+              newProblem(true);
+            }, 1500);
+
+        });
+      } else {
+         // Fallback for when not logged in
+         setAnswerStatus("correct");
+         say("¡Correcto!");
+         confetti({
+           particleCount: 150,
+           spread: 100,
+           origin: { y: 0.6 },
+           colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
+         });
+         setTimeout(() => {
+           newProblem(true);
+         }, 1500);
+      }
+
       if (problem.isRetry) {
-        // Special celebration for a hard-won victory
+        setMedalType('superacion');
         setShowMedal(true);
         say("¡Guau! ¡Has superado un reto difícil! Eres una campeona, Emmita.");
         setTimeout(() => {
           setShowMedal(false);
           newProblem(true);
-        }, 4000); // Show medal for 4 seconds
-      } else {
-        // Normal correct answer
-        setAnswerStatus("correct");
-        say("¡Correcto!");
-        confetti({
-          particleCount: 150,
-          spread: 100,
-          origin: { y: 0.6 },
-          colors: ['#FFB74D', '#FFECB3', '#FFFFFF', '#89CFF0']
-        });
-        setTimeout(() => {
-          if (problem.operator === '÷' && Math.random() < 0.3) {
-              setLevel(prev => prev === 1 ? 2 : 1);
-          }
-          newProblem(true);
-        }, 1500);
+        }, 4000);
       }
     } else {
       setAnswerStatus("incorrect");
@@ -118,7 +179,7 @@ export default function Home() {
         setUserInput("");
       }, 1500);
     }
-  }, [problem, userInput, newProblem, say, user, db, attempts]);
+  }, [problem, userInput, newProblem, say, user, db, attempts, dailyPoints, rewardsConfig]);
 
   const handleShowSolution = useCallback(() => {
     if (!problem) return;
@@ -201,6 +262,11 @@ export default function Home() {
     say(`¿Cuánto es ${newProb.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
   };
 
+  const onRewardsSave = (newConfig: RewardsConfig) => {
+    setRewardsConfig(newConfig);
+    // No need to close here, modal handles its own state
+  };
+
   const statusColorClass = {
     idle: "border-muted",
     correct: "border-green-500",
@@ -237,9 +303,15 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
-       <MedalOverlay show={showMedal} />
+       <MedalOverlay show={showMedal} type={medalType} prize={prizeMessage} />
+       <RewardsSettingsModal
+        isOpen={showRewardsSettings}
+        onClose={() => setShowRewardsSettings(false)}
+        onSave={onRewardsSave}
+        initialConfig={rewardsConfig}
+      />
 
-      <div className="absolute top-4 left-4">
+      <div className="absolute top-4 left-4 flex items-center gap-2">
         <Button 
           variant="outline" 
           size="icon" 
@@ -251,25 +323,23 @@ export default function Home() {
         </Button>
       </div>
 
-       <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-100 p-2 rounded-md shadow-sm">
-        <Input
-          id="debug-input"
-          type="text"
-          value={debugInput}
-          onChange={(e) => setDebugInput(e.target.value)}
-          placeholder="Ej: 4*9 o 36/4"
-          className="w-36 h-8 text-sm"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleDebugSubmit();
-            }
-          }}
-        />
-        <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
+       <div className="absolute top-4 right-4">
+        <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setShowRewardsSettings(true)}
+            className="bg-background/80"
+            aria-label="Configurar premios"
+        >
+            <Settings className="h-5 w-5" />
+        </Button>
       </div>
 
       <div className="relative w-full max-w-md text-center">
-        <h1 className="font-headline text-3xl font-bold mb-6 text-foreground/80">MathEmmita</h1>
+        <h1 className="font-headline text-3xl font-bold mb-2 text-foreground/80">MathEmmita</h1>
+        <div className="mb-6 px-4">
+          <RewardsBar currentPoints={dailyPoints} config={rewardsConfig} />
+        </div>
         
         {problem ? (
           <div className={cn("relative p-8 rounded-2xl shadow-lg mb-8 transition-colors duration-500", problemCardColorClass[problem.colorTheme])}>
@@ -325,12 +395,26 @@ export default function Home() {
           </div>
           <div className="w-1/3"></div>
         </div>
+
+        <div className="mt-8 bg-slate-100/80 p-2 rounded-md shadow-sm flex items-center gap-2 justify-center max-w-sm mx-auto">
+            <Input
+              id="debug-input"
+              type="text"
+              value={debugInput}
+              onChange={(e) => setDebugInput(e.target.value)}
+              placeholder="Ej: 4*9 o 36/4"
+              className="w-36 h-8 text-sm bg-white"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleDebugSubmit();
+                }
+              }}
+            />
+            <Button onClick={handleDebugSubmit} size="sm" className="h-8">Test</Button>
+        </div>
       </div>
       
       <TricksModal isOpen={showTricks} onClose={() => setShowTricks(false)} problem={problem} />
     </main>
   );
 }
-
-
-      
