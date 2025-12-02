@@ -29,6 +29,7 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [debugInput, setDebugInput] = useState("");
   const [showMedal, setShowMedal] = useState(false);
+  const [attempts, setAttempts] = useState(0);
 
   const say = useCallback(async (text: string) => {
     setIsSpeaking(true);
@@ -41,6 +42,7 @@ export default function Home() {
     setProblem(p);
     setUserInput("");
     setAnswerStatus("idle");
+    setAttempts(0); // Reset attempts for the new problem
     if (shouldSpeak) {
       say(`¿Cuánto es ${p.question.replace('×', 'por').replace('÷', 'dividido por')}?`);
     }
@@ -91,13 +93,23 @@ export default function Home() {
       }
     } else {
       setAnswerStatus("incorrect");
-      say("Oh, intenta de nuevo.");
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      if (newAttempts === 1) {
+        say("Casi, intenta de nuevo.");
+      } else if (newAttempts === 2) {
+        say("¿Necesitas ayuda? ¡Mira el truco de la bombilla!");
+      } else {
+        say("Si estás atascada, ahora puedes ver la solución.");
+      }
+
       setTimeout(() => {
         setAnswerStatus("idle");
         setUserInput("");
       }, 1500);
     }
-  }, [problem, userInput, newProblem, say, user, db]);
+  }, [problem, userInput, newProblem, say, user, db, attempts]);
 
   const handleShowSolution = useCallback(() => {
     if (!problem) return;
@@ -264,22 +276,32 @@ export default function Home() {
         
         <Keypad onKeyPress={handleKeyPress} theme={problem?.colorTheme || 'orange'} />
         
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            variant="outline"
-            onClick={handleShowSolution}
-            className="bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200"
-            disabled={answerStatus === 'correct' || answerStatus === 'revealed'}
-          >
-            Ver Solución
-          </Button>
-          <Button
-            className="rounded-full h-16 w-16 shadow-lg bg-primary hover:bg-primary/90"
-            onClick={() => setShowTricks(true)}
-            aria-label="Mostrar truco"
-          >
-            <Lightbulb className="h-8 w-8 text-primary-foreground" />
-          </Button>
+        <div className="flex justify-between items-center mt-6 w-full px-4">
+          <div className="w-1/3">
+             {attempts >= 2 && (
+                <Button
+                    variant="outline"
+                    onClick={handleShowSolution}
+                    className="bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200 animate-in fade-in duration-500"
+                    disabled={answerStatus === 'correct' || answerStatus === 'revealed'}
+                >
+                    Ver Solución
+                </Button>
+             )}
+          </div>
+          <div className="w-1/3 flex justify-center">
+            <Button
+              className={cn(
+                "rounded-full h-16 w-16 shadow-lg bg-primary hover:bg-primary/90",
+                attempts >= 1 && answerStatus !== 'correct' && answerStatus !== 'revealed' && "animate-bounce"
+              )}
+              onClick={() => setShowTricks(true)}
+              aria-label="Mostrar truco"
+            >
+              <Lightbulb className="h-8 w-8 text-primary-foreground" />
+            </Button>
+          </div>
+          <div className="w-1/3"></div>
         </div>
       </div>
       
