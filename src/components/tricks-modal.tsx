@@ -165,10 +165,6 @@ const HalfTrick: FC<{ total: number }> = ({ total }) => {
                 </div>
 
              </div>
-             
-             <div className="bg-sky-50 inline-block px-4 py-2 rounded-lg border border-sky-100">
-                La mitad de <strong>{total}</strong> es <strong>{half}</strong>.
-             </div>
         </div>
     );
 };
