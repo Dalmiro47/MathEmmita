@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Lightbulb, Volume2, LogIn } from "lucide-react";
-import { generateProblem, loadVoices, speak, type Problem } from "@/lib/math-engine";
+import { Lightbulb, Volume2, LogIn, VolumeX } from "lucide-react";
+import { generateProblem, loadVoices, speak, type Problem, stopSpeech } from "@/lib/math-engine";
 import { getSmartProblem, saveAttempt } from "@/lib/progress-service";
 import { Keypad } from "@/components/keypad";
 import { TricksModal } from "@/components/tricks-modal";
@@ -30,12 +30,14 @@ export default function Home() {
   const [debugInput, setDebugInput] = useState("");
   const [showMedal, setShowMedal] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   const say = useCallback(async (text: string) => {
+    if (isMuted) return;
     setIsSpeaking(true);
     await speak(text);
     setIsSpeaking(false);
-  }, []);
+  }, [isMuted]);
 
   const newProblem = useCallback(async (shouldSpeak = false) => {
     const p = user && db ? await getSmartProblem(db, user.uid, level) : generateProblem(level);
@@ -55,6 +57,13 @@ export default function Home() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, userLoading]);
+  
+  useEffect(() => {
+    if (isMuted) {
+      stopSpeech();
+      setIsSpeaking(false);
+    }
+  }, [isMuted]);
 
   const checkAnswer = useCallback(() => {
     if (!problem || userInput === "") return;
@@ -229,6 +238,19 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
        <MedalOverlay show={showMedal} />
+
+      <div className="absolute top-4 left-4">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={() => setIsMuted(prev => !prev)}
+          className="bg-background/80"
+          aria-label={isMuted ? "Activar sonido" : "Silenciar"}
+        >
+          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+        </Button>
+      </div>
+
        <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-100 p-2 rounded-md shadow-sm">
         <Input
           id="debug-input"
@@ -254,7 +276,7 @@ export default function Home() {
             <p className="font-headline text-6xl sm:text-8xl font-bold tracking-widest" aria-live="polite">
               {problem.question}
             </p>
-            <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-muted-foreground" onClick={() => say(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)} disabled={isSpeaking}>
+            <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-muted-foreground" onClick={() => say(`¿Cuánto es ${problem.question.replace('×', 'por').replace('÷', 'dividido por')}?`)} disabled={isSpeaking || isMuted}>
               <Volume2 className="h-6 w-6" />
               <span className="sr-only">Leer problema en voz alta</span>
             </Button>
@@ -309,3 +331,6 @@ export default function Home() {
     </main>
   );
 }
+
+
+      
